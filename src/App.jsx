@@ -342,6 +342,19 @@ export default function App() {
     }));
   }
 
+  function resolveOperarioNameForPdf() {
+    const explicitOperario = (formData.operario || "").trim();
+    if (explicitOperario) return explicitOperario;
+
+    if (isAdmin) {
+      const selectedUser = assignableUsers.find((item) => item.id === formData.operarioUserId);
+      const selectedLabel = (selectedUser?.label || "").replace(/\s\(Admin\)$/, "").trim();
+      if (selectedLabel) return selectedLabel;
+    }
+
+    return getCurrentUserDisplayName();
+  }
+
   function resetFormForNewJob() {
     clearPhotos();
     setFormData(emptyFormData());
@@ -451,8 +464,13 @@ export default function App() {
 
     setIsGeneratingPdf(true);
     try {
-      persistCurrentJob();
-      await generateJobPdf({ formData, photos, signature });
+      const operarioForPdf = resolveOperarioNameForPdf();
+      const payloadForPdf = { ...formData, operario: operarioForPdf };
+
+      const saved = await persistCurrentJob();
+      if (!saved) return;
+
+      await generateJobPdf({ formData: payloadForPdf, photos, signature });
       setToast({ message: "PDF generado correctamente", type: "success" });
       setActiveView("list");
     } catch {
