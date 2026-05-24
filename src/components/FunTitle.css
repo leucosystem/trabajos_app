@@ -1,0 +1,68 @@
+.fun-title {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  font-family: "Arial Narrow", "Trebuchet MS", sans-serif;
+  font-size: clamp(1.2rem, 2.2vw, 1.75rem);
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-main);
+  text-shadow:
+    0 1px 0 rgba(17, 14, 10, 0.55),
+    0 0 14px rgba(242, 189, 71, 0.08);
+  text-align: center;
+  line-height: 1.05;
+}
+
+.fun-title span:last-child {
+  position: relative;
+  padding: 0.2rem 0.4rem 0.2rem 0.5rem;
+}
+
+.fun-title span:last-child::before,
+.fun-title span:last-child::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(242, 189, 71, 0.55), transparent);
+}
+
+.fun-title span:last-child::before {
+  top: -0.18rem;
+}
+
+.fun-title span:last-child::after {
+  bottom: -0.18rem;
+}
+
+.title-mark {
+  width: clamp(1.7rem, 2.6vw, 2.2rem);
+  height: clamp(1.7rem, 2.6vw, 2.2rem);
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.22), transparent 26%),
+    linear-gradient(145deg, #9aa0a2, #545c60 45%, #2f3538 100%);
+  border: 1px solid rgba(20, 22, 24, 0.85);
+  box-shadow:
+    0 0 0 3px rgba(117, 122, 120, 0.22),
+    inset 0 1px 1px rgba(255, 255, 255, 0.24),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.36);
+}
+
+.title-mark svg {
+  width: 62%;
+  height: 62%;
+  fill: var(--accent-warning);
+  stroke: #2b2416;
+  stroke-width: 0.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(242, 189, 71, 0.26));
+}

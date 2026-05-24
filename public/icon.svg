@@ -1,0 +1,189 @@
+﻿<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1a0d"/>
+      <stop offset="100%" style="stop-color:#162416"/>
+    </linearGradient>
+    <linearGradient id="jdGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a9e35"/>
+      <stop offset="100%" style="stop-color:#2d7320"/>
+    </linearGradient>
+    <linearGradient id="jdHood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#367C2B"/>
+      <stop offset="100%" style="stop-color:#255218"/>
+    </linearGradient>
+    <linearGradient id="wheel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a2a2a"/>
+      <stop offset="100%" style="stop-color:#111"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6dd0eb;stop-opacity:0.7"/>
+      <stop offset="100%" style="stop-color:#c8ecf7;stop-opacity:0.85"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo -->
+  <rect width="512" height="512" fill="url(#bg)" rx="90"/>
+
+  <!-- ============ TRACTOR JOHN DEERE 7700 ============ -->
+
+  <!-- GUARDABARROS trasero (fender) â€” parte mÃ¡s icÃ³nica del 7700 -->
+  <path d="M 90 260 Q 85 280 83 330 Q 82 380 110 410 Q 138 435 175 438 Q 212 435 240 410 Q 265 383 265 330 Q 265 275 255 255 Q 245 238 228 232 L 175 228 Q 135 230 110 245 Z"
+        fill="url(#jdGreen)" stroke="#1a4a10" stroke-width="2"/>
+  <!-- Borde interior del guardabarros -->
+  <path d="M 108 265 Q 103 300 103 335 Q 103 375 128 400 Q 152 422 175 424 Q 198 422 222 400 Q 246 375 246 335 Q 246 295 238 265"
+        fill="none" stroke="#FFDE00" stroke-width="2.5" opacity="0.5"/>
+
+  <!-- RUEDA TRASERA grande -->
+  <circle cx="175" cy="348" r="88" fill="url(#wheel)"/>
+  <!-- Perfil exterior neumÃ¡tico (bloque de talones) -->
+  <circle cx="175" cy="348" r="88" fill="none" stroke="#222" stroke-width="14"/>
+  <circle cx="175" cy="348" r="88" fill="none" stroke="#3a3a3a" stroke-width="4"/>
+  <!-- Barras de tracciÃ³n en la rueda -->
+  <g fill="#3a3a3a">
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(0 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(30 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(60 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(90 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(120 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(150 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(180 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(210 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(240 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(270 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(300 175 348)"/>
+    <rect x="170" y="262" width="10" height="20" rx="2" transform="rotate(330 175 348)"/>
+  </g>
+  <!-- Aro / llanta amarilla -->
+  <circle cx="175" cy="348" r="56" fill="#1a1a1a" stroke="#FFDE00" stroke-width="5"/>
+  <!-- Centro llanta -->
+  <circle cx="175" cy="348" r="22" fill="#FFDE00"/>
+  <circle cx="175" cy="348" r="11" fill="#1a1a1a"/>
+  <!-- 6 tornillos -->
+  <circle cx="175" cy="326" r="4.5" fill="#FFDE00"/>
+  <circle cx="175" cy="370" r="4.5" fill="#FFDE00"/>
+  <circle cx="156" cy="337" r="4.5" fill="#FFDE00"/>
+  <circle cx="194" cy="337" r="4.5" fill="#FFDE00"/>
+  <circle cx="156" cy="359" r="4.5" fill="#FFDE00"/>
+  <circle cx="194" cy="359" r="4.5" fill="#FFDE00"/>
+
+  <!-- CHASIS / BASTIDOR principal -->
+  <rect x="175" y="284" width="210" height="65" fill="url(#jdGreen)" rx="5"/>
+  <!-- Refuerzo chasis inferior -->
+  <rect x="185" y="342" width="195" height="16" fill="#255218" rx="3"/>
+
+  <!-- ENGANCHE TRASERO (tres puntos) â€” muy caracterÃ­stico del 7700 -->
+  <rect x="90" y="312" width="55" height="30" fill="url(#jdGreen)" rx="4"/>
+  <!-- Barras enganche -->
+  <line x1="95" y1="342" x2="88" y2="385" stroke="#FFDE00" stroke-width="5" stroke-linecap="round"/>
+  <line x1="135" y1="342" x2="142" y2="385" stroke="#FFDE00" stroke-width="5" stroke-linecap="round"/>
+  <line x1="115" y1="330" x2="115" y2="385" stroke="#FFDE00" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- CAPÃ“ MOTOR largo y plano â€” muy icÃ³nico del 7700 -->
+  <!-- Cuerpo principal del capÃ³ -->
+  <rect x="285" y="242" width="148" height="58" fill="url(#jdHood)" rx="4"/>
+  <!-- Panel lateral capÃ³ (mÃ¡s oscuro) -->
+  <rect x="285" y="252" width="148" height="38" fill="#255218" opacity="0.4"/>
+  <!-- Franja amarilla superior capÃ³ â€” icÃ³nica JD -->
+  <rect x="285" y="242" width="148" height="9" fill="#FFDE00"/>
+  <!-- LÃ­neas de la rejilla del capÃ³ -->
+  <line x1="305" y1="254" x2="305" y2="295" stroke="#FFDE00" stroke-width="1.8" opacity="0.35"/>
+  <line x1="322" y1="254" x2="322" y2="295" stroke="#FFDE00" stroke-width="1.8" opacity="0.35"/>
+  <line x1="339" y1="254" x2="339" y2="295" stroke="#FFDE00" stroke-width="1.8" opacity="0.35"/>
+  <line x1="356" y1="254" x2="356" y2="295" stroke="#FFDE00" stroke-width="1.8" opacity="0.35"/>
+  <line x1="373" y1="254" x2="373" y2="295" stroke="#FFDE00" stroke-width="1.8" opacity="0.35"/>
+  <line x1="390" y1="254" x2="390" y2="295" stroke="#FFDE00" stroke-width="1.8" opacity="0.35"/>
+  <!-- Frente del capÃ³ redondeado -->
+  <path d="M 433 242 Q 450 242 455 258 Q 458 272 450 290 Q 444 300 433 300 L 433 242 Z" fill="url(#jdHood)"/>
+  <!-- Rejilla frontal del capÃ³ -->
+  <rect x="438" y="255" width="14" height="36" fill="#111" rx="3"/>
+  <line x1="441" y1="260" x2="441" y2="288" stroke="#FFDE00" stroke-width="1.5" opacity="0.6"/>
+  <line x1="447" y1="260" x2="447" y2="288" stroke="#FFDE00" stroke-width="1.5" opacity="0.6"/>
+  <!-- Luz delantera -->
+  <ellipse cx="451" cy="278" rx="6" ry="9" fill="#ffe080" opacity="0.8"/>
+  <!-- ConexiÃ³n capÃ³ - cabina -->
+  <rect x="277" y="256" width="14" height="40" fill="#255218"/>
+
+  <!-- CABINA Generation II (boxy, icÃ³nica del 7700) -->
+  <!-- Estructura base cabina -->
+  <rect x="218" y="190" width="100" height="105" fill="url(#jdGreen)" rx="6"/>
+  <!-- Pilar trasero cabina -->
+  <rect x="214" y="190" width="12" height="105" fill="#255218" rx="3"/>
+  <!-- Pilar delantero cabina -->
+  <rect x="307" y="190" width="12" height="105" fill="#255218" rx="3"/>
+  <!-- TECHO PLANO amarillo â€” muy caracterÃ­stico del 7700 -->
+  <rect x="210" y="178" width="116" height="20" fill="#FFDE00" rx="5"/>
+  <!-- Borde frontal del techo -->
+  <rect x="315" y="178" width="8" height="20" fill="#e8c800"/>
+  <!-- Ventana delantera grande -->
+  <rect x="230" y="200" width="78" height="62" fill="url(#glass)" rx="4"/>
+  <!-- DivisiÃ³n central ventana (caracterÃ­stica 7700) -->
+  <line x1="269" y1="200" x2="269" y2="262" stroke="#255218" stroke-width="3"/>
+  <!-- Reflejo cristal -->
+  <line x1="236" y1="206" x2="248" y2="256" stroke="white" stroke-width="2.5" opacity="0.3" stroke-linecap="round"/>
+  <!-- Ventana trasera pequeÃ±a -->
+  <rect x="218" y="208" width="14" height="36" fill="url(#glass)" rx="2" opacity="0.7"/>
+  <!-- Panel lateral cabina (inferior) -->
+  <rect x="226" y="264" width="90" height="30" fill="#2d7320"/>
+  <!-- Escalones de acceso -->
+  <rect x="215" y="284" width="28" height="7" fill="#FFDE00" rx="2" opacity="0.85"/>
+  <rect x="215" y="298" width="28" height="7" fill="#FFDE00" rx="2" opacity="0.65"/>
+
+  <!-- ESCAPE vertical (sale por el capÃ³) -->
+  <rect x="296" y="135" width="14" height="58" fill="#888" rx="5"/>
+  <rect x="291" y="130" width="22" height="13" fill="#666" rx="5"/>
+  <ellipse cx="302" cy="128" rx="12" ry="5" fill="#444"/>
+  <!-- Humo -->
+  <circle cx="302" cy="112" r="9" fill="#aaa" opacity="0.2"/>
+  <circle cx="308" cy="97" r="7" fill="#aaa" opacity="0.14"/>
+  <circle cx="300" cy="83" r="5" fill="#aaa" opacity="0.09"/>
+
+  <!-- RUEDA DELANTERA pequeÃ±a doble (rasgo del 7700) -->
+  <!-- Rueda 1 -->
+  <circle cx="390" cy="370" r="47" fill="url(#wheel)"/>
+  <circle cx="390" cy="370" r="47" fill="none" stroke="#222" stroke-width="10"/>
+  <circle cx="390" cy="370" r="32" fill="#1a1a1a" stroke="#FFDE00" stroke-width="3.5"/>
+  <circle cx="390" cy="370" r="13" fill="#FFDE00"/>
+  <circle cx="390" cy="370" r="6" fill="#1a1a1a"/>
+  <!-- 4 tornillos rueda delantera -->
+  <circle cx="390" cy="355" r="3.5" fill="#FFDE00"/>
+  <circle cx="390" cy="385" r="3.5" fill="#FFDE00"/>
+  <circle cx="375" cy="370" r="3.5" fill="#FFDE00"/>
+  <circle cx="405" cy="370" r="3.5" fill="#FFDE00"/>
+
+  <!-- Eje delantero -->
+  <rect x="318" y="362" width="72" height="12" fill="#255218" rx="4"/>
+
+  <!-- ============ CHECKLIST ============ -->
+  <!-- Hoja con espiral (bloc de notas) -->
+  <rect x="38" y="44" width="118" height="152" fill="#0d1a0d" rx="10" stroke="#FFDE00" stroke-width="3"/>
+  <!-- Encabezado verde -->
+  <rect x="38" y="44" width="118" height="28" fill="#367C2B" rx="10"/>
+  <rect x="38" y="60" width="118" height="12" fill="#367C2B"/>
+  <!-- Espirales del bloc -->
+  <circle cx="66"  cy="44" r="5.5" fill="none" stroke="#FFDE00" stroke-width="2.5"/>
+  <circle cx="88"  cy="44" r="5.5" fill="none" stroke="#FFDE00" stroke-width="2.5"/>
+  <circle cx="110" cy="44" r="5.5" fill="none" stroke="#FFDE00" stroke-width="2.5"/>
+  <circle cx="132" cy="44" r="5.5" fill="none" stroke="#FFDE00" stroke-width="2.5"/>
+  <!-- Fila 1: CHECK -->
+  <rect x="52" y="84"  width="18" height="18" fill="#255218" stroke="#FFDE00" stroke-width="2" rx="3"/>
+  <path d="M 55 93 L 61 100 L 70 85" fill="none" stroke="#FFDE00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="78" y="88"  width="64" height="6" fill="#FFDE00" rx="3" opacity="0.85"/>
+  <!-- Fila 2: CHECK -->
+  <rect x="52" y="110" width="18" height="18" fill="#255218" stroke="#FFDE00" stroke-width="2" rx="3"/>
+  <path d="M 55 119 L 61 126 L 70 111" fill="none" stroke="#FFDE00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="78" y="114" width="52" height="6" fill="#FFDE00" rx="3" opacity="0.85"/>
+  <!-- Fila 3: pendiente -->
+  <rect x="52" y="136" width="18" height="18" fill="none" stroke="#FFDE00" stroke-width="2" rx="3" opacity="0.5"/>
+  <rect x="78" y="140" width="58" height="6" fill="#FFDE00" rx="3" opacity="0.4"/>
+  <!-- Fila 4: pendiente -->
+  <rect x="52" y="162" width="18" height="18" fill="none" stroke="#FFDE00" stroke-width="2" rx="3" opacity="0.5"/>
+  <rect x="78" y="166" width="44" height="6" fill="#FFDE00" rx="3" opacity="0.4"/>
+
+  <!-- ============ SUELO ============ -->
+  <path d="M 38 440 Q 140 428 240 436 Q 340 444 450 430 L 474 474 L 38 474 Z" fill="#1a2e0a" opacity="0.95"/>
+  <path d="M 50 450 Q 160 440 270 448" stroke="#2d5015" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M 290 452 Q 390 442 470 450" stroke="#2d5015" stroke-width="2" fill="none" opacity="0.7"/>
+  <!-- Franja dorada inferior JD -->
+  <rect x="38" y="470" width="434" height="6" fill="#FFDE00" rx="3" opacity="0.55"/>
+</svg>

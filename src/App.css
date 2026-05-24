@@ -1,0 +1,328 @@
+:root {
+  --bg-steel-1: #121518;
+  --bg-steel-2: #1b2024;
+  --bg-steel-3: #2b3135;
+  --field-bg: rgba(18, 24, 24, 0.94);
+  --field-border: rgba(175, 165, 132, 0.34);
+  --field-glow: rgba(242, 189, 71, 0.24);
+  --text-main: #ece4d0;
+  --text-soft: #b8b19f;
+  --text-dim: #8f9788;
+  --accent-warning: #f2bd47;
+  --accent-warning-dark: #8b6721;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(233, 194, 92, 0.08), transparent 16%),
+    linear-gradient(90deg, #0a0d0f 0%, #121619 26%, #040506 50%, #121619 74%, #0a0d0f 100%);
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.screen-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: clamp(1rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 210, 120, 0.06), transparent 14%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.24) 0%, transparent 8%, transparent 92%, rgba(0, 0, 0, 0.24) 100%),
+    linear-gradient(
+      90deg,
+      rgba(52, 58, 62, 0.98) 0%,
+      rgba(81, 87, 91, 0.96) 16%,
+      rgba(110, 116, 119, 0.28) 18%,
+      rgba(21, 25, 28, 0.16) 31%,
+      rgba(5, 6, 8, 0.04) 41%,
+      rgba(4, 5, 7, 0) 47.8%,
+      rgba(4, 5, 7, 0) 52.2%,
+      rgba(5, 6, 8, 0.04) 59%,
+      rgba(21, 25, 28, 0.16) 69%,
+      rgba(110, 116, 119, 0.28) 82%,
+      rgba(81, 87, 91, 0.96) 84%,
+      rgba(52, 58, 62, 0.98) 100%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 18%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 2px,
+      transparent 2px,
+      transparent 40px
+    ),
+    linear-gradient(145deg, var(--bg-steel-1), var(--bg-steel-2) 55%, var(--bg-steel-3));
+  overflow: hidden;
+}
+
+.app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 0, transparent 47.25%, rgba(246, 201, 88, 0.26) 49.85%, rgba(246, 201, 88, 0.08) 50%, rgba(246, 201, 88, 0.26) 50.15%, transparent 52.75%, transparent 100%),
+    linear-gradient(90deg, transparent 0, transparent 17%, rgba(255, 255, 255, 0.035) 18%, rgba(0, 0, 0, 0.1) 18.6%, transparent 19.2%, transparent 80.8%, rgba(0, 0, 0, 0.1) 81.4%, rgba(255, 255, 255, 0.035) 82%, transparent 83%, transparent 100%),
+    radial-gradient(circle at 50% 50%, rgba(255, 196, 82, 0.1), transparent 18%);
+  pointer-events: none;
+}
+
+.app::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.36) 0%, rgba(0, 0, 0, 0.18) 7%, transparent 14%, transparent 86%, rgba(0, 0, 0, 0.18) 93%, rgba(0, 0, 0, 0.36) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 12%, transparent 88%, rgba(0, 0, 0, 0.26) 100%),
+    linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.04) 14%, transparent 26%),
+    linear-gradient(240deg, transparent 0%, rgba(255, 255, 255, 0.03) 15%, transparent 28%),
+    linear-gradient(90deg, transparent 0, transparent 8%, rgba(205, 193, 150, 0.04) 8.3%, transparent 8.8%, transparent 91.2%, rgba(205, 193, 150, 0.04) 91.7%, transparent 92.2%, transparent 100%);
+  pointer-events: none;
+}
+
+.app-header {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 740px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  padding: clamp(0.8rem, 1.9vh, 1.2rem) clamp(1rem, 2.4vw, 1.5rem);
+  margin-bottom: clamp(0.55rem, 1.3vh, 1rem);
+  border: 1px solid rgba(191, 182, 152, 0.24);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 26%),
+    linear-gradient(125deg, rgba(141, 150, 151, 0.24), transparent 36%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.015),
+      rgba(255, 255, 255, 0.015) 7px,
+      rgba(0, 0, 0, 0.015) 7px,
+      rgba(0, 0, 0, 0.015) 14px
+    ),
+    linear-gradient(160deg, rgba(83, 89, 93, 0.9), rgba(41, 46, 48, 0.92));
+  box-shadow:
+    0 20px 35px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(17, 18, 19, 0.45);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+.header-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-family: "Arial Narrow", "Trebuchet MS", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.role-badge.admin {
+  color: #231b0f;
+  border-color: rgba(28, 24, 16, 0.85);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 42%),
+    linear-gradient(145deg, #f2bd47, #ae7c22);
+}
+
+.role-badge.user {
+  color: #d8e9ff;
+  border-color: rgba(106, 158, 220, 0.42);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 44%),
+    linear-gradient(145deg, rgba(64, 97, 132, 0.95), rgba(40, 58, 78, 0.96));
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(242, 189, 71, 0.15);
+  color: var(--accent-warning);
+  border: 1px solid rgba(242, 189, 71, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.logout-btn:hover {
+  background: rgba(242, 189, 71, 0.25);
+  border-color: rgba(242, 189, 71, 0.5);
+  box-shadow: 0 0 10px rgba(242, 189, 71, 0.2);
+}
+
+.logout-btn:active {
+  transform: scale(0.98);
+}
+
+.app-header::selection,
+.app-main::selection {
+  background: rgba(242, 189, 71, 0.25);
+}
+
+.app-header::before,
+.app-header::after {
+  content: "";
+  position: absolute;
+  top: clamp(0.8rem, 1.9vh, 1.2rem);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.35), transparent 30%),
+    linear-gradient(145deg, #7b817f, #2c3033);
+  border: 1px solid rgba(18, 19, 20, 0.8);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.app-header::before {
+  left: 16px;
+}
+
+.app-header::after {
+  right: 16px;
+}
+
+.app-main {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 980px);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.55rem, 1.3vh, 1rem);
+  padding: 0 0 1rem;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.app-main::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.app-header {
+  flex-shrink: 0;
+}
+
+.app-subtitle {
+  margin: 0;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: clamp(0.75rem, 1.4vw, 0.9rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.view-switch {
+  display: flex;
+  gap: 0.55rem;
+  margin-top: 0.45rem;
+}
+
+.view-btn {
+  min-width: 150px;
+  font-size: 0.74rem;
+}
+
+.view-btn.active {
+  border-color: rgba(242, 189, 71, 0.65);
+  box-shadow:
+    0 0 0 2px rgba(242, 189, 71, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -2px 0 rgba(20, 23, 25, 0.4);
+}
+
+@media (max-width: 680px) {
+  .header-top {
+    align-items: flex-start;
+  }
+
+  .header-identity {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .view-switch {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .view-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-main);
+  font-size: 1.2rem;
+}
+

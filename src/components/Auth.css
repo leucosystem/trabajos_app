@@ -1,0 +1,210 @@
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(233, 194, 92, 0.08), transparent 16%),
+    linear-gradient(90deg, #0a0d0f 0%, #121619 26%, #040506 50%, #121619 74%, #0a0d0f 100%);
+}
+
+.auth-box {
+  position: relative;
+  padding: 2.2rem;
+  border-radius: 18px;
+  border: 1px solid rgba(192, 182, 153, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 18%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.06), transparent 26%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.012),
+      rgba(255, 255, 255, 0.012) 6px,
+      rgba(0, 0, 0, 0.02) 6px,
+      rgba(0, 0, 0, 0.02) 12px
+    ),
+    linear-gradient(160deg, rgba(69, 75, 79, 0.94), rgba(28, 31, 34, 0.98));
+  box-shadow:
+    0 26px 42px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+}
+
+.auth-box::before {
+  content: "VAULT ACCESS CONSOLE";
+  position: absolute;
+  top: 0.65rem;
+  right: 1rem;
+  font-family: "Arial Narrow", "Trebuchet MS", sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: rgba(201, 193, 167, 0.42);
+}
+
+.auth-box h1 {
+  text-align: center;
+  margin: 0;
+  color: #ece4d0;
+  font-size: 1.55rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.auth-subtitle {
+  margin: 0.35rem 0 1.6rem;
+  text-align: center;
+  color: #8f9788;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.form-group {
+  margin-bottom: 1.1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b8b19f;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.78rem 0.9rem;
+  border: 1px solid rgba(175, 165, 132, 0.34);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #ece4d0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 32%),
+    linear-gradient(180deg, rgba(15, 20, 20, 0.98), rgba(26, 31, 31, 0.96));
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: rgba(242, 189, 71, 0.72);
+  box-shadow:
+    0 0 0 3px rgba(242, 189, 71, 0.24),
+    inset 0 0 12px rgba(242, 189, 71, 0.06);
+}
+
+.form-group input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ece4d0;
+  caret-color: #ece4d0;
+  -webkit-box-shadow: 0 0 0 1000px #151a1c inset;
+  box-shadow: 0 0 0 1000px #151a1c inset;
+  border: 1px solid rgba(175, 165, 132, 0.34);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.message {
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.message.error {
+  color: #ffd4d4;
+  border: 1px solid rgba(201, 91, 91, 0.45);
+  background: linear-gradient(145deg, rgba(136, 36, 36, 0.35), rgba(89, 23, 23, 0.25));
+}
+
+.message.success {
+  color: #d5f5d8;
+  border: 1px solid rgba(94, 171, 104, 0.5);
+  background: linear-gradient(145deg, rgba(45, 110, 53, 0.34), rgba(28, 76, 38, 0.22));
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  color: #231b0f;
+  border: 1px solid rgba(28, 24, 16, 0.92);
+  border-radius: 8px;
+  font-family: "Arial Narrow", "Trebuchet MS", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 26%),
+    linear-gradient(145deg, #f2bd47, #ae7c22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 223, 0.3),
+    inset 0 -2px 0 #8b6721,
+    0 0 16px rgba(242, 189, 71, 0.12);
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+button[type="submit"]:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: saturate(0.45) grayscale(0.25);
+}
+
+.toggle-form {
+  text-align: center;
+  margin: 1.2rem 0 0;
+  color: #b8b19f;
+  font-size: 0.92rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #f2bd47;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.link-btn:hover:not(:disabled) {
+  color: #ffd57a;
+}
+
+.link-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 520px) {
+  .auth-box {
+    padding: 1.6rem 1rem 1.2rem;
+  }
+
+  .auth-box h1 {
+    font-size: 1.25rem;
+  }
+}
