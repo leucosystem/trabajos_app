@@ -56,6 +56,9 @@ export default defineConfig({
       },
       // Estrategia del SW: NetworkFirst para datos dinámicos (Supabase)
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
