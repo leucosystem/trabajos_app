@@ -527,6 +527,15 @@ export default function App() {
             >
               Horas
             </button>
+            <button
+              type="button"
+              className="secondary-btn view-btn view-btn-soon"
+              disabled
+              aria-disabled="true"
+              title="Próximamente"
+            >
+              Estadísticas
+            </button>
           </div>
         </header>
 

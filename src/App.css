@@ -296,6 +296,25 @@ body {
     inset 0 -2px 0 rgba(20, 23, 25, 0.4);
 }
 
+.view-btn.view-btn-soon {
+  opacity: 0.56;
+  cursor: not-allowed;
+  border-color: rgba(191, 182, 153, 0.26);
+  color: rgba(236, 228, 208, 0.72);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 28%),
+    linear-gradient(145deg, rgba(111, 121, 125, 0.62), rgba(67, 75, 80, 0.66));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -2px 0 rgba(20, 23, 25, 0.26);
+}
+
+.view-btn.view-btn-soon:hover,
+.view-btn.view-btn-soon:active {
+  transform: none;
+  filter: none;
+}
+
 @media (max-width: 680px) {
   .header-top {
     align-items: flex-start;
