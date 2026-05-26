@@ -376,7 +376,7 @@ export default function HoursView({
 
         return {
           regularMinutes: acc.regularMinutes + metrics.regularMinutes,
-          extraMinutes: acc.extraMinutes + metrics.extraMinutes,
+          extraMinutes: acc.extraMinutes + metrics.nonFestiveExtraMinutes,
           festiveMinutes: acc.festiveMinutes + metrics.festiveMinutes,
           totalMinutes: acc.totalMinutes + metrics.totalMinutes,
         };
@@ -578,7 +578,7 @@ export default function HoursView({
           </label>
 
           <div className="hours-summary" role="status" aria-live="polite">
-            <p>Extras: <strong>{formatMinutesAsHours(calculated.extraMinutes)}</strong></p>
+            <p>Extras: <strong>{formatMinutesAsHours(calculated.nonFestiveExtraMinutes)}</strong></p>
             <p>Festivas: <strong>{formatMinutesAsHours(calculated.festiveMinutes)}</strong></p>
             <p>Total: <strong>{formatMinutesAsHours(calculated.totalMinutes)}</strong></p>
           </div>
@@ -629,7 +629,7 @@ export default function HoursView({
                           {toTimeInput(row.start_time)} - {toTimeInput(row.end_time)} | Comida: {row.skipped_lunch ? "No" : `${row.lunch_minutes} min`}
                         </p>
                         <p className="worker-meta">
-                          N: {minutesToShortHours(metrics.regularMinutes)} | E: {minutesToShortHours(metrics.extraMinutes)} | F: {minutesToShortHours(metrics.festiveMinutes)}
+                          N: {minutesToShortHours(metrics.regularMinutes)} | E: {minutesToShortHours(metrics.nonFestiveExtraMinutes)} | F: {minutesToShortHours(metrics.festiveMinutes)}
                         </p>
                       </article>
                     );

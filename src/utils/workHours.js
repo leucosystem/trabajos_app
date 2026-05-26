@@ -55,9 +55,11 @@ export function calculateWorkMinutes({ workDate, startTime, endTime, lunchMinute
   const saturdayRegularMinutes = Math.max(0, saturdayRegularWindow - saturdayLunchOnRegular);
   const saturdayExtraMinutes = Math.max(0, saturdayExtraWindow - saturdayLunchOnExtra);
 
-  const nonFestiveExtraMinutes = isSaturday
-    ? Math.max(0, saturdayExtraMinutes + saturdayNoLunchBonus)
-    : Math.max(0, thresholdExtra + extraNoLunch);
+  const nonFestiveExtraMinutes = isFestiveDay
+    ? 0
+    : isSaturday
+      ? Math.max(0, saturdayExtraMinutes + saturdayNoLunchBonus)
+      : Math.max(0, thresholdExtra + extraNoLunch);
 
   const regularMinutes = isFestiveDay
     ? 0
