@@ -368,11 +368,11 @@ export default function App() {
     setActiveView("new");
   }
 
-  async function persistCurrentJob() {
+  async function persistCurrentJob(jobOverride = formData) {
     try {
       const saved = await saveJobToSupabase({
         id: editingJobId,
-        ...formData,
+        ...jobOverride,
         signature,
         photoCount: photos.length,
         photoInfo: photos.map((photo) => photo.info || ""),
@@ -395,7 +395,7 @@ export default function App() {
     event.preventDefault();
     if (!isFormValid || isGeneratingPdf) return;
 
-    const saved = await persistCurrentJob();
+    const saved = await persistCurrentJob(formData);
     if (!saved) return;
 
     setToast({ message: editingJobId ? "Trabajo actualizado" : "Trabajo guardado", type: "success" });
@@ -467,10 +467,15 @@ export default function App() {
       const operarioForPdf = resolveOperarioNameForPdf();
       const payloadForPdf = { ...formData, operario: operarioForPdf };
 
-      const saved = await persistCurrentJob();
+      const saved = await persistCurrentJob(payloadForPdf);
       if (!saved) return;
 
-      await generateJobPdf({ formData: payloadForPdf, photos, signature });
+      const finalOperario = (saved.operario || payloadForPdf.operario || "").trim();
+      await generateJobPdf({
+        formData: { ...payloadForPdf, operario: finalOperario },
+        photos,
+        signature,
+      });
       setToast({ message: "PDF generado correctamente", type: "success" });
       setActiveView("list");
     } catch {
