@@ -1,6 +1,7 @@
-const MINUTES_AT_19 = 19 * 60;
-const MINUTES_AT_1230 = 12 * 60 + 30;
-const DEFAULT_LUNCH_BONUS = 90;
+// Laboral: extras a partir de 10h netas trabajadas
+// Sábado:  extras a partir de 5h netas trabajadas
+const REGULAR_THRESHOLD_WEEKDAY = 10 * 60;
+const REGULAR_THRESHOLD_SATURDAY = 5 * 60;
 
 function timeToMinutes(value) {
   if (!value || !value.includes(':')) return 0;
@@ -16,13 +17,21 @@ export function formatMinutesAsHours(minutes) {
   return `${wholeHours}h ${restMinutes.toString().padStart(2, '0')}m`;
 }
 
-export function calculateWorkMinutes({ workDate, startTime, endTime, lunchMinutes, skippedLunch, isHoliday = false }) {
+export function calculateWorkMinutes({
+  workDate,
+  startTime,
+  endTime,
+  lunchMinutes,
+  skippedLunch,
+  startTime2,
+  endTime2,
+  isHoliday = false,
+}) {
   const day = workDate ? new Date(`${workDate}T00:00:00`) : null;
   const dayOfWeek = day && !Number.isNaN(day.getTime()) ? day.getDay() : null;
   const isSunday = dayOfWeek === 0;
   const isSaturday = dayOfWeek === 6;
   const isFestiveDay = isSunday || isHoliday;
-  const hadLunch = skippedLunch === undefined ? true : !skippedLunch;
 
   const start = timeToMinutes(startTime);
   const end = timeToMinutes(endTime);
@@ -37,42 +46,35 @@ export function calculateWorkMinutes({ workDate, startTime, endTime, lunchMinute
     };
   }
 
-  const duration = end - start;
   const normalizedLunch = Math.max(0, Number(lunchMinutes) || 0);
+  const net1 = Math.max(0, (end - start) - normalizedLunch);
 
-  const netBaseMinutes = Math.max(0, duration - normalizedLunch);
+  // Segundo turno (sin pausa de comida)
+  const start2 = startTime2 ? timeToMinutes(startTime2) : 0;
+  const end2 = endTime2 ? timeToMinutes(endTime2) : 0;
+  const net2 = end2 > start2 ? end2 - start2 : 0;
 
-  const extraAfter19 = Math.max(0, end - MINUTES_AT_19);
-  const extraAfterSaturday = isSaturday ? Math.max(0, end - MINUTES_AT_1230) : 0;
-  const thresholdExtra = isSaturday ? extraAfterSaturday : extraAfter19;
-  const festiveMinutes = isFestiveDay ? netBaseMinutes : 0;
-  const extraNoLunch = hadLunch ? 0 : Math.max(0, DEFAULT_LUNCH_BONUS - normalizedLunch);
-  const saturdayNoLunchBonus = isSaturday ? 0 : extraNoLunch;
-  const saturdayRegularWindow = isSaturday ? Math.max(0, Math.min(end, MINUTES_AT_1230) - start) : 0;
-  const saturdayExtraWindow = isSaturday ? Math.max(0, end - Math.max(start, MINUTES_AT_1230)) : 0;
-  const saturdayLunchOnExtra = isSaturday ? Math.min(normalizedLunch, saturdayExtraWindow) : 0;
-  const saturdayLunchOnRegular = isSaturday ? Math.max(0, normalizedLunch - saturdayLunchOnExtra) : 0;
-  const saturdayRegularMinutes = Math.max(0, saturdayRegularWindow - saturdayLunchOnRegular);
-  const saturdayExtraMinutes = Math.max(0, saturdayExtraWindow - saturdayLunchOnExtra);
+  const totalNet = net1 + net2;
 
-  const nonFestiveExtraMinutes = isFestiveDay
-    ? 0
-    : isSaturday
-      ? Math.max(0, saturdayExtraMinutes + saturdayNoLunchBonus)
-      : Math.max(0, thresholdExtra + extraNoLunch);
+  if (isFestiveDay) {
+    return {
+      regularMinutes: 0,
+      extraMinutes: totalNet,
+      festiveMinutes: totalNet,
+      nonFestiveExtraMinutes: 0,
+      totalMinutes: totalNet,
+    };
+  }
 
-  const regularMinutes = isFestiveDay
-    ? 0
-    : isSaturday
-      ? saturdayRegularMinutes
-      : Math.max(0, netBaseMinutes - thresholdExtra);
-  const extraMinutes = Math.max(0, nonFestiveExtraMinutes + festiveMinutes);
+  const threshold = isSaturday ? REGULAR_THRESHOLD_SATURDAY : REGULAR_THRESHOLD_WEEKDAY;
+  const regularMinutes = Math.min(totalNet, threshold);
+  const nonFestiveExtraMinutes = Math.max(0, totalNet - threshold);
 
   return {
     regularMinutes,
-    extraMinutes,
-    festiveMinutes,
+    extraMinutes: nonFestiveExtraMinutes,
+    festiveMinutes: 0,
     nonFestiveExtraMinutes,
-    totalMinutes: regularMinutes + extraMinutes,
+    totalMinutes: totalNet,
   };
 }

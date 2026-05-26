@@ -45,6 +45,8 @@ export async function upsertWorkLog({ viewerUserId, targetUserId, isAdmin, paylo
     end_time: payload.endTime,
     lunch_minutes: payload.lunchMinutes,
     skipped_lunch: payload.skippedLunch,
+    start_time_2: payload.startTime2 || null,
+    end_time_2: payload.endTime2 || null,
     regular_minutes: payload.regularMinutes,
     extra_minutes: payload.extraMinutes,
     notes: payload.notes || null,
@@ -94,7 +96,7 @@ export async function unsetHolidayDate(isoDate) {
 export async function recalculateWorkLogsForDate(isoDate, isHoliday) {
   const { data, error } = await supabase
     .from('work_logs')
-    .select('id, work_date, start_time, end_time, lunch_minutes, skipped_lunch')
+    .select('id, work_date, start_time, end_time, lunch_minutes, skipped_lunch, start_time_2, end_time_2')
     .eq('work_date', isoDate);
 
   if (error) throw error;
@@ -110,6 +112,8 @@ export async function recalculateWorkLogsForDate(isoDate, isHoliday) {
         endTime: toTimeInput(row.end_time),
         lunchMinutes: row.lunch_minutes,
         skippedLunch: row.skipped_lunch,
+        startTime2: toTimeInput(row.start_time_2),
+        endTime2: toTimeInput(row.end_time_2),
         isHoliday,
       });
 
@@ -129,7 +133,7 @@ export async function recalculateWorkLogsForDate(isoDate, isHoliday) {
 export async function loadWorkLogsForDate(isoDate) {
   const { data, error } = await supabase
     .from('work_logs')
-    .select('id, user_id, work_date, start_time, end_time, lunch_minutes, skipped_lunch, regular_minutes, extra_minutes, notes')
+    .select('id, user_id, work_date, start_time, end_time, lunch_minutes, skipped_lunch, start_time_2, end_time_2, regular_minutes, extra_minutes, notes')
     .eq('work_date', isoDate)
     .order('user_id', { ascending: true });
 

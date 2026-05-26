@@ -97,6 +97,9 @@ export default function HoursView({
     endTime: "",
     lunchMinutes: 90,
     skippedLunch: false,
+    secondShift: false,
+    startTime2: "",
+    endTime2: "",
     notes: "",
   });
 
@@ -172,6 +175,9 @@ export default function HoursView({
         endTime: toTimeInput(existing.end_time),
         lunchMinutes: existing.lunch_minutes ?? 90,
         skippedLunch: Boolean(existing.skipped_lunch),
+        secondShift: Boolean(existing.start_time_2),
+        startTime2: toTimeInput(existing.start_time_2),
+        endTime2: toTimeInput(existing.end_time_2),
         notes: existing.notes || "",
       });
       return;
@@ -182,6 +188,9 @@ export default function HoursView({
       endTime: "",
       lunchMinutes: 90,
       skippedLunch: false,
+      secondShift: false,
+      startTime2: "",
+      endTime2: "",
       notes: "",
     });
   }, [selectedDate, logsByDate]);
@@ -194,6 +203,8 @@ export default function HoursView({
         endTime: form.endTime,
         lunchMinutes: form.lunchMinutes,
         skippedLunch: form.skippedLunch,
+        startTime2: form.secondShift ? form.startTime2 : undefined,
+        endTime2: form.secondShift ? form.endTime2 : undefined,
         isHoliday: holidays.has(selectedDate),
       }),
     [form, selectedDate, holidays]
@@ -215,6 +226,8 @@ export default function HoursView({
           endTime: toTimeInput(row.end_time),
           lunchMinutes: row.lunch_minutes,
           skippedLunch: Boolean(row.skipped_lunch),
+          startTime2: toTimeInput(row.start_time_2),
+          endTime2: toTimeInput(row.end_time_2),
           isHoliday: holidays.has(row.work_date),
         });
 
@@ -237,6 +250,8 @@ export default function HoursView({
       endTime: form.endTime,
       lunchMinutes: form.lunchMinutes,
       skippedLunch: form.skippedLunch,
+      startTime2: form.secondShift ? form.startTime2 : undefined,
+      endTime2: form.secondShift ? form.endTime2 : undefined,
       isHoliday: holidays.has(selectedDate),
     });
     if (result.totalMinutes <= 0) {
@@ -256,6 +271,8 @@ export default function HoursView({
           endTime: form.endTime,
           lunchMinutes: Number(form.lunchMinutes) || 0,
           skippedLunch: form.skippedLunch,
+          startTime2: form.secondShift ? form.startTime2 : null,
+          endTime2: form.secondShift ? form.endTime2 : null,
           regularMinutes: result.regularMinutes,
           extraMinutes: result.extraMinutes,
           notes: form.notes,
@@ -298,6 +315,8 @@ export default function HoursView({
       endTime: toTimeInput(dayLog.end_time),
       lunchMinutes: dayLog.lunch_minutes,
       skippedLunch: Boolean(dayLog.skipped_lunch),
+      startTime2: toTimeInput(dayLog.start_time_2),
+      endTime2: toTimeInput(dayLog.end_time_2),
       isHoliday: holidays.has(isoDate),
     });
   }
@@ -371,6 +390,8 @@ export default function HoursView({
           endTime: toTimeInput(row.end_time),
           lunchMinutes: row.lunch_minutes,
           skippedLunch: Boolean(row.skipped_lunch),
+          startTime2: toTimeInput(row.start_time_2),
+          endTime2: toTimeInput(row.end_time_2),
           isHoliday: selectedIsHoliday,
         });
 
@@ -566,6 +587,48 @@ export default function HoursView({
             ) : null}
           </div>
 
+          <div className="hours-row">
+            <label className="hours-check" htmlFor="second-shift">
+              <input
+                id="second-shift"
+                type="checkbox"
+                checked={form.secondShift}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    secondShift: event.target.checked,
+                    startTime2: "",
+                    endTime2: "",
+                  }))
+                }
+              />
+              Segundo turno
+            </label>
+          </div>
+
+          {form.secondShift && (
+            <div className="hours-row two-cols">
+              <label className="hours-time-field" htmlFor="start-time-2">
+                <span>Inicio 2</span>
+                <input
+                  id="start-time-2"
+                  type="time"
+                  value={form.startTime2}
+                  onChange={(event) => setForm((prev) => ({ ...prev, startTime2: event.target.value }))}
+                />
+              </label>
+              <label className="hours-time-field" htmlFor="end-time-2">
+                <span>Fin 2</span>
+                <input
+                  id="end-time-2"
+                  type="time"
+                  value={form.endTime2}
+                  onChange={(event) => setForm((prev) => ({ ...prev, endTime2: event.target.value }))}
+                />
+              </label>
+            </div>
+          )}
+
           <label className="form-field" htmlFor="hours-notes">
             Notas (opcional)
             <textarea
@@ -619,6 +682,8 @@ export default function HoursView({
                       endTime: toTimeInput(row.end_time),
                       lunchMinutes: row.lunch_minutes,
                       skippedLunch: Boolean(row.skipped_lunch),
+                      startTime2: toTimeInput(row.start_time_2),
+                      endTime2: toTimeInput(row.end_time_2),
                       isHoliday: selectedIsHoliday,
                     });
 
@@ -628,6 +693,11 @@ export default function HoursView({
                         <p className="worker-meta">
                           {toTimeInput(row.start_time)} - {toTimeInput(row.end_time)} | Comida: {row.skipped_lunch ? "No" : `${row.lunch_minutes} min`}
                         </p>
+                        {row.start_time_2 && (
+                          <p className="worker-meta">
+                            2º turno: {toTimeInput(row.start_time_2)} - {toTimeInput(row.end_time_2)}
+                          </p>
+                        )}
                         <p className="worker-meta">
                           N: {minutesToShortHours(metrics.regularMinutes)} | E: {minutesToShortHours(metrics.nonFestiveExtraMinutes)} | F: {minutesToShortHours(metrics.festiveMinutes)}
                         </p>
