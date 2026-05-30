@@ -87,16 +87,23 @@ function buildNotesPayload(jobData) {
   });
 }
 
-export async function loadJobsFromSupabase(userId, isAdmin) {
+export async function loadJobsFromSupabase(userId, isAdmin, { page = 1, pageSize = 20 } = {}) {
   try {
-    let query = supabase.from('jobs').select('*');
+    const safePage = Math.max(1, Number(page) || 1);
+    const safePageSize = Math.max(1, Number(pageSize) || 20);
+    const from = (safePage - 1) * safePageSize;
+    const to = from + safePageSize - 1;
+
+    let query = supabase.from('jobs').select('*', { count: 'exact' });
 
     // Si no es admin, solo sus trabajos
     if (!isAdmin) {
       query = query.eq('user_id', userId);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (error) {
       console.error('Error loading jobs:', error);
@@ -122,10 +129,20 @@ export async function loadJobsFromSupabase(userId, isAdmin) {
       }
     }
 
-    return rows.map((row) => mapDbJobToUiJob(row, profileNameByUserId));
+    return {
+      jobs: rows.map((row) => mapDbJobToUiJob(row, profileNameByUserId)),
+      totalCount: Number(count) || 0,
+      page: safePage,
+      pageSize: safePageSize,
+    };
   } catch (err) {
     console.error('Unexpected error loading jobs:', err);
-    return [];
+    return {
+      jobs: [],
+      totalCount: 0,
+      page: Math.max(1, Number(page) || 1),
+      pageSize: Math.max(1, Number(pageSize) || 20),
+    };
   }
 }
 

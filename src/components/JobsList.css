@@ -12,6 +12,26 @@
   gap: 0.7rem;
 }
 
+.jobs-pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.jobs-page-btn {
+  min-width: 5.4rem;
+  height: 1.95rem;
+  padding: 0 0.75rem;
+  font-size: 0.72rem;
+}
+
+.jobs-page-indicator {
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: 0.73rem;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
+}
+
 .jobs-list-count {
   margin: 0;
   font-family: "Trebuchet MS", "Segoe UI", sans-serif;
@@ -171,6 +191,10 @@
   .jobs-list-head {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .jobs-pagination {
+    justify-content: space-between;
   }
 
   .job-row {

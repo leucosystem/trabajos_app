@@ -16,6 +16,7 @@ import { loadJobsFromSupabase, saveJobToSupabase, deleteJobFromSupabase } from "
 import { supabase } from "./utils/supabaseClient";
 
 const DRAFT_KEY = "trabajos-draft";
+const JOBS_PAGE_SIZE = 20;
 
 function loadDraft() {
   try {
@@ -52,6 +53,8 @@ export default function App() {
   const [activeView, setActiveView] = useState("new");
   const [editingJobId, setEditingJobId] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [jobPage, setJobPage] = useState(1);
+  const [totalJobCount, setTotalJobCount] = useState(0);
   const [assignableUsers, setAssignableUsers] = useState([]);
   const [loadingAssignableUsers, setLoadingAssignableUsers] = useState(false);
   const [loadingJobs, setLoadingJobs] = useState(true);
@@ -74,9 +77,9 @@ export default function App() {
   // Carga aunque no haya perfil todavía (admin puede tardar en cargar)
   useEffect(() => {
     if (user) {
-      loadJobs();
+      loadJobs(jobPage);
     }
-  }, [user, profile]);
+  }, [user, profile, jobPage]);
 
   // Guardar borrador
   useEffect(() => {
@@ -237,11 +240,27 @@ export default function App() {
     return <Auth onSignUp={signUp} onSignIn={signIn} loading={authLoading} />;
   }
 
-  async function loadJobs() {
+  async function loadJobs(pageToLoad = jobPage) {
+    if (!user) return;
+
+    const safePage = Math.max(1, Number(pageToLoad) || 1);
     setLoadingJobs(true);
     try {
-      const data = await loadJobsFromSupabase(user.id, isAdmin);
-      setJobs(data);
+      const data = await loadJobsFromSupabase(user.id, isAdmin, {
+        page: safePage,
+        pageSize: JOBS_PAGE_SIZE,
+      });
+
+      const loadedJobs = data?.jobs || [];
+      const loadedTotal = Number(data?.totalCount) || 0;
+
+      if (safePage > 1 && loadedJobs.length === 0 && loadedTotal > 0) {
+        setJobPage((prev) => Math.max(1, prev - 1));
+        return;
+      }
+
+      setJobs(loadedJobs);
+      setTotalJobCount(loadedTotal);
     } catch (err) {
       console.error('Error loading jobs:', err);
       setToast({ message: 'Error al cargar trabajos', type: 'error' });
@@ -328,7 +347,16 @@ export default function App() {
   }
 
   function refreshJobs() {
-    loadJobs();
+    loadJobs(jobPage);
+  }
+
+  function handlePrevJobsPage() {
+    setJobPage((prev) => Math.max(1, prev - 1));
+  }
+
+  function handleNextJobsPage() {
+    const totalPages = Math.max(1, Math.ceil(totalJobCount / JOBS_PAGE_SIZE));
+    setJobPage((prev) => Math.min(totalPages, prev + 1));
   }
 
   function handleOperarioUserChange(selectedUserId) {
@@ -571,7 +599,17 @@ export default function App() {
             onClearSignature={() => setSignature(null)}
           />
         ) : activeView === "list" ? (
-          <JobsList jobs={jobs} onEdit={handleEditFromList} onDelete={handleDeleteFromList} />
+          <JobsList
+            jobs={jobs}
+            totalCount={totalJobCount}
+            page={jobPage}
+            pageSize={JOBS_PAGE_SIZE}
+            loading={loadingJobs}
+            onEdit={handleEditFromList}
+            onDelete={handleDeleteFromList}
+            onPrevPage={handlePrevJobsPage}
+            onNextPage={handleNextJobsPage}
+          />
         ) : (
           <HoursView
             userId={user.id}

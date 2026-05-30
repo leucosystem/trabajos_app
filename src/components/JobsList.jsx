@@ -14,19 +14,44 @@ function prettyEstado(value) {
   return "Supervisar";
 }
 
-export default function JobsList({ jobs, onEdit, onDelete }) {
+export default function JobsList({
+  jobs,
+  totalCount,
+  page,
+  pageSize,
+  loading,
+  onEdit,
+  onDelete,
+  onPrevPage,
+  onNextPage,
+}) {
   const [selectedJobId, setSelectedJobId] = useState(null);
+  const totalPages = Math.max(1, Math.ceil((Number(totalCount) || 0) / (Number(pageSize) || 1)));
+  const isFirstPage = page <= 1;
+  const isLastPage = page >= totalPages;
+  const hasJobs = jobs.length > 0;
 
   return (
     <section className="jobs-list-wrap">
       <div className="jobs-list-head">
-        <p className="jobs-list-count">{jobs.length} trabajo{jobs.length !== 1 && "s"} registrado{jobs.length !== 1 && "s"}</p>
+        <p className="jobs-list-count">
+          Cargados: {jobs.length} · Total: {totalCount}
+        </p>
+        <div className="jobs-pagination">
+          <button type="button" className="secondary-btn jobs-page-btn" onClick={onPrevPage} disabled={loading || isFirstPage}>
+            Anterior
+          </button>
+          <span className="jobs-page-indicator">Pag {page}/{totalPages}</span>
+          <button type="button" className="secondary-btn jobs-page-btn" onClick={onNextPage} disabled={loading || isLastPage}>
+            Siguiente
+          </button>
+        </div>
       </div>
 
-      {jobs.length === 0 ? (
+      {!hasJobs ? (
         <div className="jobs-list-empty">
-          <p>Aun no hay trabajos guardados.</p>
-          <p>Registra el primero desde la pantalla de Nuevo trabajo.</p>
+          <p>{loading ? "Cargando trabajos..." : "Aun no hay trabajos guardados."}</p>
+          {!loading && <p>Registra el primero desde la pantalla de Nuevo trabajo.</p>}
         </div>
       ) : (
         <div className="jobs-list-table" role="list">
