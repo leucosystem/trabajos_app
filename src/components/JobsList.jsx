@@ -22,6 +22,7 @@ export default function JobsList({
   loading,
   onEdit,
   onDelete,
+  onOpenPdf,
   onPrevPage,
   onNextPage,
 }) {
@@ -79,14 +80,34 @@ export default function JobsList({
                   Estado: <span className={`job-status ${job.estado || "supervisar"}`}>{prettyEstado(job.estado)}</span>
                 </p>
                 <p className="job-row-meta">Operario: {job.operario || "Sin operario"}</p>
-                <p className="job-row-meta">{prettyDate(job.fecha)} • {job.cantidad || "0"} {job.unidad || "cantidad"}</p>
-                <p className="job-row-desc">{job.descripcion || "Sin descripcion"}</p>
+                <p className="job-row-meta">Fecha: {prettyDate(job.fecha)}</p>
+                <p className="job-row-desc">
+                  {job.descripcion || "Sin descripcion"}
+                  {" • "}
+                  {job.cantidad || "0"}
+                  {job.unidad && job.unidad !== "cantidad" ? ` ${job.unidad}` : ""}
+                </p>
               </div>
 
               <div className="job-row-actions">
                 <button
                   type="button"
-                  className="secondary-btn compact-btn icon-btn"
+                  className="secondary-btn compact-btn icon-btn pdf-btn"
+                  disabled={!job.pdfStoragePath}
+                  aria-label="Ver PDF"
+                  title={job.pdfStoragePath ? "Ver PDF" : "Sin PDF asociado"}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onOpenPdf?.(job.id);
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm7 1.5V8h4.5L13 3.5ZM8 12h8v1.5H8V12Zm0 3h8v1.5H8V15Z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="secondary-btn compact-btn icon-btn row-action-secondary"
                   disabled={!canEdit}
                   aria-label="Editar trabajo"
                   title={canEdit ? "Editar" : "Bloqueado: este parte ya no está en Supervisar"}
@@ -101,7 +122,7 @@ export default function JobsList({
                 </button>
                 <button
                   type="button"
-                  className="secondary-btn danger-btn compact-btn icon-btn"
+                  className="secondary-btn danger-btn compact-btn icon-btn row-action-secondary"
                   aria-label="Borrar trabajo"
                   title="Borrar"
                   onClick={(event) => {

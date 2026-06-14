@@ -22,10 +22,10 @@ function readFileAsDataUrl(file) {
  * @param {Object} params.formData - Campos del formulario (cliente, fecha, descripcion, cantidad, unidad).
  * @param {Array<{file: File, info: string}>} params.photos - Fotos con texto informativo opcional.
  * @param {string|null} params.signature - Data URL PNG de la firma del cliente, o null si no hay.
- * @param {boolean} params.preview - Si es true, devuelve un blob URL en vez de descargar.
- * @returns {Promise<string|void>} Blob URL si preview=true, o descarga el PDF.
+ * @param {'download'|'blob'|'preview'} params.output - Tipo de salida deseada.
+ * @returns {Promise<void|string|{blob: Blob, fileName: string}>}
  */
-export async function generateJobPdf({ formData, photos, signature, preview = false }) {
+export async function generateJobPdf({ formData, photos, signature, output = "download" }) {
   const quantityLabel =
     formData.unidad === "cantidad"
       ? `Cantidad: ${formData.cantidad || "0"}`
@@ -187,12 +187,30 @@ export async function generateJobPdf({ formData, photos, signature, preview = fa
     y += sigHeight + 5;
   }
 
-  if (preview) {
-    const blob = doc.output("blob");
+  const safeDate = formData.fecha || formatDateToInput(new Date());
+  const safeClient = (formData.cliente || "cliente").trim().replace(/\s+/g, "-").toLowerCase();
+  const fileName = `trabajo-${safeClient}-${safeDate}.pdf`;
+  const blob = doc.output("blob");
+
+  if (output === "preview") {
     return URL.createObjectURL(blob);
   }
 
-  const safeDate = formData.fecha || formatDateToInput(new Date());
-  const safeClient = (formData.cliente || "cliente").trim().replace(/\s+/g, "-").toLowerCase();
-  doc.save(`trabajo-${safeClient}-${safeDate}.pdf`);
+  if (output === "blob") {
+    return { blob, fileName };
+  }
+
+  doc.save(fileName);
+}
+
+export function downloadPdfBlob(blob, fileName) {
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName || "trabajo.pdf";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }

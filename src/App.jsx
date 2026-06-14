@@ -9,10 +9,16 @@ import Toast from "./components/Toast";
 import Auth from "./components/Auth";
 import DoorTransition from "./components/DoorTransition";
 import { formatDateToInput } from "./utils/date";
-import { generateJobPdf } from "./utils/jobPdf";
+import { downloadPdfBlob, generateJobPdf } from "./utils/jobPdf";
 import { listJobs, removeJob, saveJob } from "./utils/jobsStore";
 import { useAuth } from "./utils/useAuth";
-import { loadJobsFromSupabase, saveJobToSupabase, deleteJobFromSupabase } from "./utils/jobsSupabaseStore";
+import {
+  loadJobsFromSupabase,
+  saveJobToSupabase,
+  deleteJobFromSupabase,
+  getJobPdfSignedUrl,
+  uploadJobPdfAndAttach,
+} from "./utils/jobsSupabaseStore";
 import { supabase } from "./utils/supabaseClient";
 
 const DRAFT_KEY = "trabajos-draft";
@@ -464,6 +470,25 @@ export default function App() {
     });
   }
 
+  async function handleOpenPdfFromList(jobId) {
+    const job = jobs.find((item) => item.id === jobId);
+    if (!job?.pdfStoragePath) {
+      setToast({ message: "Este trabajo no tiene PDF asociado", type: "error" });
+      return;
+    }
+
+    try {
+      const signedUrl = await getJobPdfSignedUrl(job.pdfStoragePath, 300);
+      const opened = window.open(signedUrl, "_blank", "noopener,noreferrer");
+      if (!opened) {
+        setToast({ message: "No se pudo abrir la pestaña del PDF", type: "error" });
+      }
+    } catch (err) {
+      console.error("Error opening PDF from list:", err);
+      setToast({ message: "No se pudo abrir el PDF asociado", type: "error" });
+    }
+  }
+
   /** Abre el panel de firma, intentando poner pantalla completa y landscape en movil. */
   async function openSignaturePad() {
     try {
@@ -499,12 +524,38 @@ export default function App() {
       if (!saved) return;
 
       const finalOperario = (saved.operario || payloadForPdf.operario || "").trim();
-      await generateJobPdf({
+      const generated = await generateJobPdf({
         formData: { ...payloadForPdf, operario: finalOperario },
         photos,
         signature,
+        output: "blob",
       });
-      setToast({ message: "PDF generado correctamente", type: "success" });
+
+      downloadPdfBlob(generated?.blob, generated?.fileName);
+
+      try {
+        await uploadJobPdfAndAttach({
+          jobId: saved.id,
+          ownerUserId: saved.user_id,
+          uploaderUserId: user.id,
+          fileName: generated?.fileName,
+          pdfBlob: generated?.blob,
+          signed: Boolean(signature),
+          photoCount: photos.length,
+        });
+      } catch (uploadError) {
+        console.error("Error uploading/attaching PDF:", uploadError);
+        setToast({
+          message: `PDF generado, pero no se pudo asociar al trabajo: ${uploadError?.message || 'error desconocido'}`,
+          type: "error",
+        });
+        setActiveView("list");
+        refreshJobs();
+        return;
+      }
+
+      refreshJobs();
+      setToast({ message: "PDF generado y asociado al trabajo", type: "success" });
       setActiveView("list");
     } catch {
       setToast({ message: "Error al generar el PDF", type: "error" });
@@ -607,6 +658,7 @@ export default function App() {
             loading={loadingJobs}
             onEdit={handleEditFromList}
             onDelete={handleDeleteFromList}
+            onOpenPdf={handleOpenPdfFromList}
             onPrevPage={handlePrevJobsPage}
             onNextPage={handleNextJobsPage}
           />

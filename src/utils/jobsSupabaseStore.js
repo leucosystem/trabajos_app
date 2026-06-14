@@ -70,18 +70,38 @@ function mapDbJobToUiJob(row, profileNameByUserId = {}) {
     cliente: row.title || '',
     operario: resolveOperarioName(parsed.operario, profileNameByUserId[row.user_id]),
     fecha: row.work_date || '',
-    descripcion: parsed.descripcion,
+    descripcion: capitalizeFirstLetter(parsed.descripcion),
     cantidad: parsed.cantidad,
     unidad: parsed.unidad,
+    pdfFilename: row.pdf_filename || '',
+    pdfStoragePath: row.pdf_storage_path || '',
+    pdfGeneratedAt: row.pdf_generated_at || null,
+    pdfPhotoCount: row.pdf_photo_count ?? 0,
+    pdfSigned: Boolean(row.pdf_signed),
     created_at: row.created_at,
   };
+}
+
+function safePathSegment(value, fallback = 'valor') {
+  const normalized = String(value || fallback)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return normalized || fallback;
+}
+
+function capitalizeFirstLetter(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function buildNotesPayload(jobData) {
   return JSON.stringify({
     operario: jobData.operario || '',
     operarioUserId: jobData.operarioUserId || '',
-    descripcion: jobData.descripcion || '',
+    descripcion: capitalizeFirstLetter(jobData.descripcion),
     cantidad: jobData.cantidad || '',
     unidad: jobData.unidad || 'cantidad',
   });
@@ -107,7 +127,12 @@ export async function loadJobsFromSupabase(userId, isAdmin, { page = 1, pageSize
 
     if (error) {
       console.error('Error loading jobs:', error);
-      return [];
+      return {
+        jobs: [],
+        totalCount: 0,
+        page: safePage,
+        pageSize: safePageSize,
+      };
     }
 
     const rows = data || [];
@@ -210,4 +235,77 @@ export async function deleteJobFromSupabase(jobId) {
     console.error('Error deleting job:', err);
     throw err;
   }
+}
+
+export async function uploadJobPdfAndAttach({
+  jobId,
+  ownerUserId,
+  uploaderUserId,
+  fileName,
+  pdfBlob,
+  signed = false,
+  photoCount = 0,
+}) {
+  const safeJobId = String(jobId || '').trim();
+  const safeOwnerId = String(ownerUserId || '').trim();
+  const safeUploaderId = String(uploaderUserId || '').trim();
+
+  if (!safeJobId) throw new Error('Missing job ID for PDF upload');
+  if (!safeOwnerId) throw new Error('Missing owner user ID for PDF upload');
+  if (!safeUploaderId) throw new Error('Missing uploader user ID for PDF upload');
+  if (!pdfBlob) throw new Error('Missing PDF blob for upload');
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const normalizedFile = safePathSegment(fileName || 'trabajo-pdf', 'trabajo-pdf');
+  const storagePath = `${safeUploaderId}/${safeJobId}/${timestamp}-${normalizedFile}.pdf`;
+
+  const { error: uploadError } = await supabase
+    .storage
+    .from('job-pdfs')
+    .upload(storagePath, pdfBlob, {
+      contentType: 'application/pdf',
+      upsert: false,
+    });
+
+  if (uploadError) {
+    throw new Error(`Storage upload failed: ${uploadError.message || 'unknown error'}`);
+  }
+
+  const { data, error: updateError } = await supabase
+    .from('jobs')
+    .update({
+      pdf_filename: fileName || 'trabajo.pdf',
+      pdf_storage_path: storagePath,
+      pdf_generated_at: new Date().toISOString(),
+      pdf_signed: Boolean(signed),
+      pdf_photo_count: Math.max(0, Number(photoCount) || 0),
+    })
+    .eq('id', safeJobId)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error(`Jobs update failed: ${updateError.message || 'unknown error'}`);
+  }
+  return data;
+}
+
+export async function getJobPdfSignedUrl(storagePath, expiresInSeconds = 300) {
+  const safePath = String(storagePath || '').trim();
+  if (!safePath) throw new Error('PDF path is empty');
+
+  const { data, error } = await supabase
+    .storage
+    .from('job-pdfs')
+    .createSignedUrl(safePath, Math.max(60, Number(expiresInSeconds) || 300));
+
+  if (error) {
+    throw new Error(`Cannot create PDF URL: ${error.message || 'unknown error'}`);
+  }
+
+  if (!data?.signedUrl) {
+    throw new Error('Cannot create PDF URL: signed URL is empty');
+  }
+
+  return data.signedUrl;
 }
