@@ -44,7 +44,8 @@ function toIsoDate(date) {
 }
 
 function monthLabel(date) {
-  return new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(date);
+  const raw = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(date);
+  return raw.replace(" de ", " ");
 }
 
 function dayNameLabel(index) {

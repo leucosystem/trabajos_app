@@ -107,6 +107,24 @@ function buildNotesPayload(jobData) {
   });
 }
 
+async function loadProfileNameByUserId(userId) {
+  const safeUserId = String(userId || '').trim();
+  if (!safeUserId) return '';
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .eq('id', safeUserId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error loading profile name for job save:', error);
+    return '';
+  }
+
+  return data?.full_name || '';
+}
+
 export async function loadJobsFromSupabase(userId, isAdmin, { page = 1, pageSize = 20 } = {}) {
   try {
     const safePage = Math.max(1, Number(page) || 1);
@@ -200,7 +218,9 @@ export async function saveJobToSupabase(jobData, userId, isAdmin = false) {
       if (!data || data.length === 0) {
         throw new Error('JOB_LOCKED_BY_STATUS');
       }
-      return data?.[0] ? mapDbJobToUiJob(data[0]) : null;
+      if (!data?.[0]) return null;
+      const fullName = await loadProfileNameByUserId(assignedUserId);
+      return mapDbJobToUiJob(data[0], { [assignedUserId]: fullName });
     } else {
       // Crear nuevo trabajo
       const { data, error } = await supabase
@@ -215,7 +235,9 @@ export async function saveJobToSupabase(jobData, userId, isAdmin = false) {
         .select();
 
       if (error) throw error;
-      return data?.[0] ? mapDbJobToUiJob(data[0]) : null;
+      if (!data?.[0]) return null;
+      const fullName = await loadProfileNameByUserId(assignedUserId);
+      return mapDbJobToUiJob(data[0], { [assignedUserId]: fullName });
     }
   } catch (err) {
     console.error('Error saving job:', err);

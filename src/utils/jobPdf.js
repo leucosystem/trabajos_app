@@ -16,6 +16,77 @@ function readFileAsDataUrl(file) {
   });
 }
 
+function loadImageFromDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("No se pudo cargar la imagen."));
+    img.src = dataUrl;
+  });
+}
+
+async function normalizeImageToAspect(dataUrl, targetAspect, options = {}) {
+  const { maxCropRatio = 0.18, backgroundColor = "#ffffff" } = options;
+  const img = await loadImageFromDataUrl(dataUrl);
+  const sourceAspect = img.width / img.height;
+
+  let croppedAreaRatio = 0;
+  if (sourceAspect > targetAspect) {
+    const keptWidth = img.height * targetAspect;
+    croppedAreaRatio = 1 - keptWidth / img.width;
+  } else if (sourceAspect < targetAspect) {
+    const keptHeight = img.width / targetAspect;
+    croppedAreaRatio = 1 - keptHeight / img.height;
+  }
+
+  const canvasW = 1200;
+  const canvasH = Math.max(1, Math.round(canvasW / targetAspect));
+  const canvas = document.createElement("canvas");
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return dataUrl;
+  }
+
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Si el recorte sería muy agresivo, priorizamos conservar todo el contenido (contain).
+  if (croppedAreaRatio > maxCropRatio) {
+    let drawW = canvas.width;
+    let drawH = drawW / sourceAspect;
+
+    if (drawH > canvas.height) {
+      drawH = canvas.height;
+      drawW = drawH * sourceAspect;
+    }
+
+    const dx = (canvas.width - drawW) / 2;
+    const dy = (canvas.height - drawH) / 2;
+    ctx.drawImage(img, dx, dy, drawW, drawH);
+    return canvas.toDataURL("image/jpeg", 0.92);
+  }
+
+  // Si el recorte es razonable, aplicamos cover centrado para mantener uniformidad visual.
+  let sx = 0;
+  let sy = 0;
+  let sw = img.width;
+  let sh = img.height;
+
+  if (sourceAspect > targetAspect) {
+    sw = img.height * targetAspect;
+    sx = (img.width - sw) / 2;
+  } else if (sourceAspect < targetAspect) {
+    sh = img.width / targetAspect;
+    sy = (img.height - sh) / 2;
+  }
+
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
 /**
  * Genera un PDF de parte de trabajo con datos del cliente, descripcion, fotos y firma.
  * @param {Object} params
@@ -26,6 +97,9 @@ function readFileAsDataUrl(file) {
  * @returns {Promise<void|string|{blob: Blob, fileName: string}>}
  */
 export async function generateJobPdf({ formData, photos, signature, output = "download" }) {
+  const operatorName = (formData.operario || "Operario").trim();
+  const title = `Trabajo de ${operatorName}`;
+
   const quantityLabel =
     formData.unidad === "cantidad"
       ? `Cantidad: ${formData.cantidad || "0"}`
@@ -40,129 +114,109 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text("Trabajo de Iv\u00e1n", pageWidth / 2, y, { align: "center" });
+  doc.text(title, pageWidth / 2, y, { align: "center" });
   y += 10;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   doc.text(`Cliente: ${formData.cliente || "-"}`, margin, y);
   y += 7;
-  doc.text(`Operario: ${formData.operario || "-"}`, margin, y);
-  y += 7;
   doc.text(`Fecha: ${formData.fecha || "-"}`, margin, y);
   y += 7;
-  doc.text(quantityLabel, margin, y);
-  y += 9;
 
   doc.setFont("helvetica", "bold");
   doc.text("Descripcion:", margin, y);
-  y += 6;
+  y += 7;
   doc.setFont("helvetica", "normal");
   const descriptionLines = doc.splitTextToSize(formData.descripcion || "-", contentWidth);
   doc.text(descriptionLines, margin, y);
-  y += descriptionLines.length * 5 + 6;
+  y += descriptionLines.length * 5 + 2;
+  doc.text(quantityLabel, margin, y);
+  y += 8;
 
-  // Preparar todas las fotos
+  // Primera página: 6 fotos (3x2) junto a datos del parte.
+  // Páginas siguientes: 9 fotos (3x3), solo fotos.
+  const PHOTO_CELL_W = 60; // 6 cm
+  const PHOTO_CELL_H = 79; // 7.9 cm
+  const PHOTO_COLS = 3;
+  const FIRST_PAGE_ROWS = 2;
+  const NEXT_PAGE_ROWS = 3;
+  const FIRST_PAGE_PHOTOS = PHOTO_COLS * FIRST_PAGE_ROWS; // 6
+  const NEXT_PAGE_PHOTOS = PHOTO_COLS * NEXT_PAGE_ROWS; // 9
+  const photoInfoFontSize = 8;
+  const photoInfoLineH = 3.2;
+  const photoInfoMaxLines = 2;
+  const photoInfoReservedH = photoInfoMaxLines * photoInfoLineH + 1;
+  const photoDrawH = PHOTO_CELL_H - photoInfoReservedH;
+  const rowGap = 4;
+  const colGap = Math.max(1, (contentWidth - PHOTO_COLS * PHOTO_CELL_W) / (PHOTO_COLS - 1));
+
+  // Preparar todas las fotos ya recortadas al mismo ratio visual.
   const allPhotos = [];
+  const targetAspect = PHOTO_CELL_W / photoDrawH;
   for (const photo of photos) {
     const compressed = await compressImage(photo.file);
     const imageData = await readFileAsDataUrl(compressed);
-    const imageProps = doc.getImageProperties(imageData);
+    const croppedImageData = await normalizeImageToAspect(imageData, targetAspect, {
+      maxCropRatio: 0.18,
+      backgroundColor: "#ffffff",
+    });
     const infoText = photo.info?.trim() || "";
-    allPhotos.push({ imageData, imageType: "JPEG", imageProps, infoText });
+    const infoLines = infoText ? doc.splitTextToSize(infoText, PHOTO_CELL_W).slice(0, photoInfoMaxLines) : [];
+    allPhotos.push({ imageData: croppedImageData, imageType: "JPEG", infoLines });
   }
 
-  const photoInfoFontSize = 9;
-  const infoLineHeight = 4;
-  const gap = 6;
-  const rowGap = 5;
-  const colWidth = (contentWidth - gap) / 2;
-
-  /**
-   * Renderiza un par de fotos (1 fila) con altura maxima fija por celda.
-   * Las fotos se escalan para caber en (colWidth x maxRowH) manteniendo proporcion.
-   * El texto informativo se centra arriba de cada foto.
-   */
-  function renderPhotoPair(pair, maxRowH, startY) {
-    const isSingle = pair.length === 1;
-    const photoWidth = isSingle ? contentWidth : colWidth;
-
-    const rendered = pair.map((p) => {
-      const hasInfo = p.infoText.length > 0;
-      const infoH = hasInfo ? infoLineHeight + 3 : 0;
-      const maxPhotoH = maxRowH - infoH;
-      let w = photoWidth;
-      let h = (p.imageProps.height * w) / p.imageProps.width;
-
-      if (h > maxPhotoH) {
-        h = maxPhotoH;
-        w = (p.imageProps.width * h) / p.imageProps.height;
-      }
-
-      return { ...p, w, h, hasInfo, infoH };
-    });
-
-    const tallestH = Math.max(...rendered.map((r) => r.h));
-    const hasAnyInfo = rendered.some((r) => r.hasInfo);
-    const textOffset = hasAnyInfo ? infoLineHeight + 3 : 0;
-
-    rendered.forEach((r, idx) => {
-      const x = isSingle ? margin : margin + idx * (colWidth + gap);
-
-      if (r.hasInfo) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(photoInfoFontSize);
-        doc.text(r.infoText, x, startY + infoLineHeight);
-      }
-
-      doc.addImage(r.imageData, r.imageType, x, startY + textOffset, r.w, r.h);
-    });
-
-    return tallestH + textOffset;
+  function gridHeight(rows) {
+    return rows * PHOTO_CELL_H + (rows - 1) * rowGap;
   }
 
-  // Altura fija por fila: calcular cuantas filas caben en cada pagina
-  const sigReserved = signature ? 28 : 0;
-  const photosPerPage = 4; // 2 filas de 2
-  const rowsPerPage = 2;
+  function renderPhotoCell(photo, cellX, cellY) {
+    doc.addImage(photo.imageData, photo.imageType, cellX, cellY, PHOTO_CELL_W, photoDrawH);
 
-  // Pagina 1: espacio disponible despues del texto del formulario
-  const page1Available = pageHeight - margin - y - (allPhotos.length <= photosPerPage ? sigReserved : 0);
-  const page1RowH = (page1Available - rowGap) / rowsPerPage;
-
-  // Paginas siguientes: espacio completo
-  const fullPageAvailable = pageHeight - margin * 2;
-
-  // Dividir fotos en pares
-  const pairs = [];
-  for (let i = 0; i < allPhotos.length; i += 2) {
-    pairs.push(allPhotos.slice(i, i + 2));
+    if (photo.infoLines.length > 0) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(photoInfoFontSize);
+      doc.text(photo.infoLines, cellX, cellY + photoDrawH + photoInfoLineH);
+    }
   }
 
-  // Pagina 1: hasta 2 pares (4 fotos)
-  const page1Pairs = pairs.slice(0, rowsPerPage);
-  page1Pairs.forEach((pair, rowIdx) => {
-    const usedH = renderPhotoPair(pair, page1RowH, y);
-    y += usedH + rowGap;
-  });
-
-  // Paginas siguientes: 4 fotos por pagina
-  const remainingPairs = pairs.slice(rowsPerPage);
-  for (let i = 0; i < remainingPairs.length; i++) {
-    const rowInPage = i % rowsPerPage;
-
-    if (rowInPage === 0) {
+  // Render primera página (máx. 6 fotos)
+  const firstBatch = allPhotos.slice(0, FIRST_PAGE_PHOTOS);
+  if (firstBatch.length > 0) {
+    let startY = y;
+    const firstGridH = gridHeight(FIRST_PAGE_ROWS);
+    if (startY + firstGridH > pageHeight - margin) {
       doc.addPage();
-      y = margin;
+      startY = margin;
     }
 
-    const isLastPage = i + rowsPerPage >= remainingPairs.length;
-    const reserve = (signature && isLastPage) ? sigReserved : 0;
-    const pageAvail = fullPageAvailable - reserve;
-    const fullRowH = (pageAvail - rowGap) / rowsPerPage;
+    firstBatch.forEach((photo, idx) => {
+      const row = Math.floor(idx / PHOTO_COLS);
+      const col = idx % PHOTO_COLS;
+      const cellX = margin + col * (PHOTO_CELL_W + colGap);
+      const cellY = startY + row * (PHOTO_CELL_H + rowGap);
+      renderPhotoCell(photo, cellX, cellY);
+    });
 
-    const usedH = renderPhotoPair(remainingPairs[i], fullRowH, y);
-    y += usedH + rowGap;
+    y = startY + firstGridH;
+  }
+
+  // Render páginas siguientes (solo fotos, máx. 9 por página)
+  const remainingPhotos = allPhotos.slice(FIRST_PAGE_PHOTOS);
+  for (let i = 0; i < remainingPhotos.length; i += NEXT_PAGE_PHOTOS) {
+    doc.addPage();
+    const pagePhotos = remainingPhotos.slice(i, i + NEXT_PAGE_PHOTOS);
+    const startY = margin;
+
+    pagePhotos.forEach((photo, idx) => {
+      const row = Math.floor(idx / PHOTO_COLS);
+      const col = idx % PHOTO_COLS;
+      const cellX = margin + col * (PHOTO_CELL_W + colGap);
+      const cellY = startY + row * (PHOTO_CELL_H + rowGap);
+      renderPhotoCell(photo, cellX, cellY);
+    });
+
+    y = startY + gridHeight(NEXT_PAGE_ROWS);
   }
 
   // Firma siempre al final de la ultima pagina
@@ -178,6 +232,12 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
       sigWidth = (sigProps.width * sigHeight) / sigProps.height;
     }
 
+    const sigBlockHeight = 4 + 6 + sigHeight + 5;
+    if (y + sigBlockHeight > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+
     y += 4;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -185,6 +245,17 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
     y += 6;
     doc.addImage(signature, "PNG", margin, y, sigWidth, sigHeight);
     y += sigHeight + 5;
+  }
+
+  // Si el PDF tiene más de una página, numeramos abajo a la derecha.
+  const totalPages = doc.getNumberOfPages();
+  if (totalPages > 1) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    for (let pageNum = 1; pageNum <= totalPages; pageNum += 1) {
+      doc.setPage(pageNum);
+      doc.text(`Pagina: ${pageNum}/${totalPages}`, pageWidth - margin, pageHeight - 6, { align: "right" });
+    }
   }
 
   const safeDate = formData.fecha || formatDateToInput(new Date());
