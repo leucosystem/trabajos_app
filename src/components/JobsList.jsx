@@ -64,11 +64,11 @@ export default function JobsList({
               className={`job-row ${selectedJobId === job.id ? "selected" : ""}`}
               role="listitem"
               key={job.id}
-              onClick={() => setSelectedJobId((prev) => (prev === job.id ? null : job.id))}
+              onClick={() => setSelectedJobId(job.id)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
-                  setSelectedJobId((prev) => (prev === job.id ? null : job.id));
+                  setSelectedJobId(job.id);
                 }
               }}
               tabIndex={0}

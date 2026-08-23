@@ -461,6 +461,12 @@ export default function App() {
   }
 
   function handleDeleteFromList(jobId) {
+    const job = jobs.find((item) => item.id === jobId);
+    const label = job?.cliente ? `"${job.cliente}"` : "este trabajo";
+    const shouldDelete = window.confirm(`¿Seguro que quieres borrar ${label}? Esta acción no se puede deshacer.`);
+
+    if (!shouldDelete) return;
+
     deleteJobFromSupabase(jobId).then(() => {
       refreshJobs();
       setToast({ message: "Trabajo borrado", type: "success" });

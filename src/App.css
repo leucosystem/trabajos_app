@@ -286,12 +286,28 @@ body {
 .view-btn {
   min-width: 150px;
   font-size: 0.74rem;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.view-btn:focus,
+.view-btn:focus-visible,
+.view-btn:active {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(242, 189, 71, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -2px 0 rgba(20, 23, 25, 0.4);
 }
 
 .view-btn.active {
-  border-color: rgba(242, 189, 71, 0.65);
+  border-color: rgba(242, 189, 71, 0.8);
+  background:
+    linear-gradient(180deg, rgba(255, 212, 105, 0.14), transparent 28%),
+    linear-gradient(145deg, rgba(114, 89, 35, 0.9), rgba(58, 60, 64, 0.96));
   box-shadow:
-    0 0 0 2px rgba(242, 189, 71, 0.24),
+    0 0 0 2px rgba(242, 189, 71, 0.25),
+    0 8px 18px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
     inset 0 -2px 0 rgba(20, 23, 25, 0.4);
 }
