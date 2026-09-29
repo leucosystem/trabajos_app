@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "./HoursView.css";
 import { calculateWorkMinutes, formatMinutesAsHours } from "../utils/workHours";
 import {
+  deleteWorkLog,
   loadHolidaysMonth,
   loadWorkLogsForDate,
   loadWorkLogsMonth,
@@ -94,7 +95,7 @@ export default function HoursView({
   const [loadingAdminDayDetail, setLoadingAdminDayDetail] = useState(false);
   const [adminDayRows, setAdminDayRows] = useState([]);
   const [form, setForm] = useState({
-    startTime: "07:30",
+    startTime: "",
     endTime: "",
     lunchMinutes: 90,
     skippedLunch: false,
@@ -185,7 +186,7 @@ export default function HoursView({
     }
 
     setForm({
-      startTime: "07:30",
+      startTime: "",
       endTime: "",
       lunchMinutes: 90,
       skippedLunch: false,
@@ -241,9 +242,61 @@ export default function HoursView({
     );
   }, [logs, holidays]);
 
+  function getEmptyFormState() {
+    return {
+      startTime: "",
+      endTime: "",
+      lunchMinutes: 90,
+      skippedLunch: false,
+      secondShift: false,
+      startTime2: "",
+      endTime2: "",
+      notes: "",
+    };
+  }
+
   async function handleSave(event) {
     event.preventDefault();
     if (!targetUserId) return;
+
+    const hasPrimaryEntry = Boolean(form.startTime || form.endTime);
+    const hasSecondEntry = Boolean(form.startTime2 || form.endTime2);
+
+    if (hasPrimaryEntry && (!form.startTime || !form.endTime)) {
+      onNotify?.("Completa inicio y fin para guardar la jornada", "error");
+      return;
+    }
+
+    if (form.secondShift && (!form.startTime2 || !form.endTime2)) {
+      onNotify?.("Completa inicio y fin del segundo turno", "error");
+      return;
+    }
+
+    const hasAnyWorkValue = Boolean(form.startTime || form.endTime || form.startTime2 || form.endTime2);
+    const isBlankDay = !hasAnyWorkValue && !form.notes.trim();
+
+    if (isBlankDay) {
+      setSaving(true);
+      try {
+        if (logsByDate.get(selectedDate)) {
+          await deleteWorkLog({
+            viewerUserId: userId,
+            targetUserId,
+            isAdmin,
+            workDate: selectedDate,
+          });
+          setLogs((prev) => prev.filter((row) => row.work_date !== selectedDate));
+        }
+        setForm(getEmptyFormState());
+        onNotify?.("Día dejado en blanco", "success");
+      } catch (error) {
+        console.error("Error clearing work log:", error);
+        onNotify?.(friendlyHoursError(error, "No se pudo borrar la jornada"), "error");
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
 
     const result = calculateWorkMinutes({
       workDate: selectedDate,
@@ -255,6 +308,7 @@ export default function HoursView({
       endTime2: form.secondShift ? form.endTime2 : undefined,
       isHoliday: holidays.has(selectedDate),
     });
+
     if (result.totalMinutes <= 0) {
       onNotify?.("Revisa inicio/fin: la jornada debe ser válida", "error");
       return;
@@ -268,12 +322,12 @@ export default function HoursView({
         isAdmin,
         payload: {
           workDate: selectedDate,
-          startTime: form.startTime,
-          endTime: form.endTime,
+          startTime: form.startTime || null,
+          endTime: form.endTime || null,
           lunchMinutes: Number(form.lunchMinutes) || 0,
           skippedLunch: form.skippedLunch,
-          startTime2: form.secondShift ? form.startTime2 : null,
-          endTime2: form.secondShift ? form.endTime2 : null,
+          startTime2: form.secondShift ? form.startTime2 || null : null,
+          endTime2: form.secondShift ? form.endTime2 || null : null,
           regularMinutes: result.regularMinutes,
           extraMinutes: result.extraMinutes,
           notes: form.notes,
@@ -288,6 +342,30 @@ export default function HoursView({
     } catch (error) {
       console.error("Error saving work log:", error);
       onNotify?.(friendlyHoursError(error, "No se pudo guardar la jornada"), "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleClearCurrentDay() {
+    if (!targetUserId) return;
+
+    setSaving(true);
+    try {
+      if (logsByDate.get(selectedDate)) {
+        await deleteWorkLog({
+          viewerUserId: userId,
+          targetUserId,
+          isAdmin,
+          workDate: selectedDate,
+        });
+        setLogs((prev) => prev.filter((row) => row.work_date !== selectedDate));
+      }
+      setForm(getEmptyFormState());
+      onNotify?.(logsByDate.get(selectedDate) ? "Jornada eliminada" : "Día dejado en blanco", "success");
+    } catch (error) {
+      console.error("Error clearing work log:", error);
+      onNotify?.(friendlyHoursError(error, "No se pudo borrar la jornada"), "error");
     } finally {
       setSaving(false);
     }
@@ -540,7 +618,6 @@ export default function HoursView({
                 type="time"
                 value={form.startTime}
                 onChange={(event) => setForm((prev) => ({ ...prev, startTime: event.target.value }))}
-                required
               />
             </label>
 
@@ -551,7 +628,6 @@ export default function HoursView({
                 type="time"
                 value={form.endTime}
                 onChange={(event) => setForm((prev) => ({ ...prev, endTime: event.target.value }))}
-                required
               />
             </label>
           </div>
@@ -647,9 +723,19 @@ export default function HoursView({
             <p>Total: <strong>{formatMinutesAsHours(calculated.totalMinutes)}</strong></p>
           </div>
 
-          <button type="submit" className="primary-btn" disabled={saving || !targetUserId}>
-            {saving ? "Guardando..." : "Guardar jornada"}
-          </button>
+          <div className="hours-actions">
+            <button type="submit" className="primary-btn" disabled={saving || !targetUserId}>
+              {saving ? "Guardando..." : "Guardar jornada"}
+            </button>
+            <button
+              type="button"
+              className="secondary-btn"
+              disabled={saving || !targetUserId}
+              onClick={handleClearCurrentDay}
+            >
+              {logsByDate.get(selectedDate) ? "Borrar jornada" : "Vaciar día"}
+            </button>
+          </div>
         </form>
       </div>
 

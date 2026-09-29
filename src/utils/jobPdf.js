@@ -100,39 +100,64 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
   const operatorName = (formData.operario || "Operario").trim();
   const title = `Trabajo de ${operatorName}`;
 
-  const quantityLabel =
-    formData.unidad === "cantidad"
-      ? `Cantidad: ${formData.cantidad || "0"}`
-      : `Cantidad: ${formData.cantidad || "0"} ${formData.unidad}`;
+  const quantityValue =
+    formData.unidad === "cantidad" ? `${formData.cantidad || "0"}` : `${formData.cantidad || "0"} ${formData.unidad}`;
 
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;
   const contentWidth = pageWidth - margin * 2;
-  let y = 18;
+  const colors = {
+    ink: [33, 41, 54],
+    muted: [110, 122, 135],
+    accent: [30, 98, 140],
+    border: [210, 219, 227],
+  };
+  let y = 16;
 
+  // Banda de cabecera con el titulo del parte, centrado verticalmente.
+  const titleLines = doc.splitTextToSize(title, contentWidth - 10);
+  const titleLineHeight = 6.5;
+  const titleBandHeight = titleLines.length * titleLineHeight + 9;
+  doc.setFillColor(...colors.accent);
+  doc.roundedRect(margin, y, contentWidth, titleBandHeight, 2.5, 2.5, "F");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text(title, pageWidth / 2, y, { align: "center" });
-  y += 10;
+  doc.setFontSize(15);
+  doc.setTextColor(255, 255, 255);
+  const titleBlockHeight = (titleLines.length - 1) * titleLineHeight;
+  const titleStartY = y + titleBandHeight / 2 - titleBlockHeight / 2;
+  titleLines.forEach((line, i) => {
+    doc.text(line, margin + 5, titleStartY + i * titleLineHeight, { baseline: "middle" });
+  });
+  y += titleBandHeight + 7;
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.text(`Cliente: ${formData.cliente || "-"}`, margin, y);
-  y += 7;
-  doc.text(`Fecha: ${formData.fecha || "-"}`, margin, y);
-  y += 7;
+  // Cliente, fecha, descripcion y cantidad como un único bloque de campos, todos
+  // con la misma tipografía de etiqueta/valor, sin separadores ni colores de fondo.
+  function drawLabelValue(label, value, x, width) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...colors.muted);
+    doc.text(label.toUpperCase(), x, y);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(...colors.ink);
+    const lines = doc.splitTextToSize(String(value || "-"), width);
+    doc.text(lines, x, y + 5);
+    return lines.length;
+  }
 
-  doc.setFont("helvetica", "bold");
-  doc.text("Descripcion:", margin, y);
-  y += 7;
-  doc.setFont("helvetica", "normal");
-  const descriptionLines = doc.splitTextToSize(formData.descripcion || "-", contentWidth);
-  doc.text(descriptionLines, margin, y);
-  y += descriptionLines.length * 5 + 2;
-  doc.text(quantityLabel, margin, y);
-  y += 8;
+  const headerColGap = 8;
+  const headerHalfWidth = (contentWidth - headerColGap) / 2;
+  const clienteLineCount = drawLabelValue("Cliente", formData.cliente, margin, headerHalfWidth);
+  const fechaLineCount = drawLabelValue("Fecha", formData.fecha, margin + headerHalfWidth + headerColGap, headerHalfWidth);
+  y += Math.max(clienteLineCount, fechaLineCount) * 5 + 7;
+
+  const descriptionLineCount = drawLabelValue("Descripcion", formData.descripcion, margin, contentWidth);
+  y += descriptionLineCount * 5 + 7;
+
+  drawLabelValue("Cantidad", quantityValue, margin, contentWidth);
+  y += 5 + 8;
 
   // Primera página: 6 fotos (3x2) junto a datos del parte.
   // Páginas siguientes: 9 fotos (3x3), solo fotos.
@@ -176,6 +201,7 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
     if (photo.infoLines.length > 0) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(photoInfoFontSize);
+      doc.setTextColor(...colors.muted);
       doc.text(photo.infoLines, cellX, cellY + photoDrawH + photoInfoLineH);
     }
   }
@@ -219,43 +245,56 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
     y = startY + gridHeight(NEXT_PAGE_ROWS);
   }
 
-  // Firma siempre al final de la ultima pagina
+  // Firma: se intenta encajar en la página actual reduciendo su tamaño antes de
+  // saltar de página, para evitar dejarla sola cuando queda poco hueco (p. ej. tras
+  // una última página de fotos casi llena).
   if (signature) {
     const sigProps = doc.getImageProperties(signature);
     const maxSigWidth = contentWidth * 0.28;
+    const topGap = 6;
+    const labelGap = 4;
+    const bottomGap = 2;
+    const minSigH = 10;
+    const preferredMaxSigH = 18;
+    const boundary = pageHeight - margin;
+
+    let availableForSig = boundary - (y + topGap) - labelGap - bottomGap;
+    if (availableForSig < minSigH) {
+      doc.addPage();
+      y = margin;
+      availableForSig = boundary - (y + topGap) - labelGap - bottomGap;
+    }
+
+    const maxSigH = Math.min(preferredMaxSigH, availableForSig);
     let sigWidth = maxSigWidth;
     let sigHeight = (sigProps.height * sigWidth) / sigProps.width;
-    const maxSigH = 18;
-
     if (sigHeight > maxSigH) {
       sigHeight = maxSigH;
       sigWidth = (sigProps.width * sigHeight) / sigProps.height;
     }
 
-    const sigBlockHeight = 4 + 6 + sigHeight + 5;
-    if (y + sigBlockHeight > pageHeight - margin) {
-      doc.addPage();
-      y = margin;
-    }
-
-    y += 4;
+    y += topGap;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.text("Firma del cliente:", margin, y);
-    y += 6;
+    doc.setTextColor(...colors.accent);
+    doc.text("Firma del cliente", margin, y);
+    y += labelGap;
     doc.addImage(signature, "PNG", margin, y, sigWidth, sigHeight);
-    y += sigHeight + 5;
+    y += sigHeight + bottomGap;
   }
 
-  // Si el PDF tiene más de una página, numeramos abajo a la derecha.
+  // Pie de página uniforme con línea separadora y numeración en todas las hojas.
   const totalPages = doc.getNumberOfPages();
-  if (totalPages > 1) {
+  for (let pageNum = 1; pageNum <= totalPages; pageNum += 1) {
+    doc.setPage(pageNum);
+    doc.setDrawColor(...colors.border);
+    doc.setLineWidth(0.3);
+    doc.line(margin, pageHeight - 11, pageWidth - margin, pageHeight - 11);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    for (let pageNum = 1; pageNum <= totalPages; pageNum += 1) {
-      doc.setPage(pageNum);
-      doc.text(`Pagina: ${pageNum}/${totalPages}`, pageWidth - margin, pageHeight - 6, { align: "right" });
-    }
+    doc.setFontSize(8.5);
+    doc.setTextColor(...colors.muted);
+    doc.text("Parte de trabajo", margin, pageHeight - 6);
+    doc.text(`Página ${pageNum}/${totalPages}`, pageWidth - margin, pageHeight - 6, { align: "right" });
   }
 
   const safeDate = formData.fecha || formatDateToInput(new Date());

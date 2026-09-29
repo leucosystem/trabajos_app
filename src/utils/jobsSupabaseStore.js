@@ -247,6 +247,29 @@ export async function saveJobToSupabase(jobData, userId, isAdmin = false) {
 
 export async function deleteJobFromSupabase(jobId) {
   try {
+    const { data: existingJob, error: fetchError } = await supabase
+      .from('jobs')
+      .select('pdf_storage_path')
+      .eq('id', jobId)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+
+    const storagePath = String(existingJob?.pdf_storage_path || '').trim();
+    if (storagePath) {
+      const { error: storageError } = await supabase
+        .storage
+        .from('job-pdfs')
+        .remove([storagePath]);
+
+      if (storageError) {
+        const message = String(storageError.message || '').toLowerCase();
+        if (!message.includes('not found') && !message.includes('does not exist')) {
+          throw new Error(`PDF storage delete failed: ${storageError.message || 'unknown error'}`);
+        }
+      }
+    }
+
     const { error } = await supabase
       .from('jobs')
       .delete()

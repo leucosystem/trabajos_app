@@ -41,14 +41,14 @@ export async function upsertWorkLog({ viewerUserId, targetUserId, isAdmin, paylo
   const row = {
     user_id: assignedUserId,
     work_date: payload.workDate,
-    start_time: payload.startTime,
-    end_time: payload.endTime,
-    lunch_minutes: payload.lunchMinutes,
-    skipped_lunch: payload.skippedLunch,
+    start_time: payload.startTime || null,
+    end_time: payload.endTime || null,
+    lunch_minutes: Number(payload.lunchMinutes) || 0,
+    skipped_lunch: Boolean(payload.skippedLunch),
     start_time_2: payload.startTime2 || null,
     end_time_2: payload.endTime2 || null,
-    regular_minutes: payload.regularMinutes,
-    extra_minutes: payload.extraMinutes,
+    regular_minutes: Number(payload.regularMinutes) || 0,
+    extra_minutes: Number(payload.extraMinutes) || 0,
     notes: payload.notes || null,
   };
 
@@ -60,6 +60,18 @@ export async function upsertWorkLog({ viewerUserId, targetUserId, isAdmin, paylo
 
   if (error) throw error;
   return data;
+}
+
+export async function deleteWorkLog({ viewerUserId, targetUserId, isAdmin, workDate }) {
+  const assignedUserId = isAdmin && targetUserId ? targetUserId : viewerUserId;
+
+  const { error } = await supabase
+    .from('work_logs')
+    .delete()
+    .eq('user_id', assignedUserId)
+    .eq('work_date', workDate);
+
+  if (error) throw error;
 }
 
 export async function loadHolidaysMonth(monthDate) {
