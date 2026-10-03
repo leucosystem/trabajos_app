@@ -106,7 +106,7 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 14;
+  const margin = 10;
   const contentWidth = pageWidth - margin * 2;
   const colors = {
     ink: [33, 41, 54],
@@ -224,7 +224,7 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
       renderPhotoCell(photo, cellX, cellY);
     });
 
-    y = startY + firstGridH;
+    y = startY + gridHeight(Math.ceil(firstBatch.length / PHOTO_COLS));
   }
 
   // Render páginas siguientes (solo fotos, máx. 9 por página)
@@ -242,7 +242,7 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
       renderPhotoCell(photo, cellX, cellY);
     });
 
-    y = startY + gridHeight(NEXT_PAGE_ROWS);
+    y = startY + gridHeight(Math.ceil(pagePhotos.length / PHOTO_COLS));
   }
 
   // Firma: se intenta encajar en la página actual reduciendo su tamaño antes de
@@ -294,7 +294,9 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
     doc.setFontSize(8.5);
     doc.setTextColor(...colors.muted);
     doc.text("Parte de trabajo", margin, pageHeight - 6);
-    doc.text(`Página ${pageNum}/${totalPages}`, pageWidth - margin, pageHeight - 6, { align: "right" });
+    if (totalPages > 1) {
+      doc.text(`Página ${pageNum}/${totalPages}`, pageWidth - margin, pageHeight - 6, { align: "right" });
+    }
   }
 
   const safeDate = formData.fecha || formatDateToInput(new Date());

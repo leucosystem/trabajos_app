@@ -260,7 +260,6 @@ export default function HoursView({
     if (!targetUserId) return;
 
     const hasPrimaryEntry = Boolean(form.startTime || form.endTime);
-    const hasSecondEntry = Boolean(form.startTime2 || form.endTime2);
 
     if (hasPrimaryEntry && (!form.startTime || !form.endTime)) {
       onNotify?.("Completa inicio y fin para guardar la jornada", "error");
