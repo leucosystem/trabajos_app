@@ -13,6 +13,9 @@ const CASES = [
   { name: "6-fotos", photos: 6, signed: false },
   { name: "7-fotos-firma", photos: 7, signed: true },
   { name: "15-fotos", photos: 15, signed: false },
+  { name: "desc-larga-6-fotos", photos: 6, signed: true, longText: true },
+  { name: "pesadas-15-fotos", photos: 15, signed: true, heavy: true },
+  { name: "caracteres-especiales", photos: 1, signed: false, special: true },
 ];
 
 mkdirSync(OUT, { recursive: true });
@@ -23,9 +26,14 @@ await page.goto(BASE_URL);
 await page.waitForFunction(() => window.harnessReady === true);
 
 for (const testCase of CASES) {
-  const base64 = await page.evaluate(({ photos, signed }) => window.makePdf(photos, signed), testCase);
-  writeFileSync(`${OUT}/${testCase.name}.pdf`, Buffer.from(base64, "base64"));
-  console.log("OK", testCase.name);
+  const { photos, signed, longText, heavy, special } = testCase;
+  const { base64, ms } = await page.evaluate(
+    ({ photos, signed, opts }) => window.makePdf(photos, signed, opts),
+    { photos, signed, opts: { longText, heavy, special } }
+  );
+  const buffer = Buffer.from(base64, "base64");
+  writeFileSync(`${OUT}/${testCase.name}.pdf`, buffer);
+  console.log("OK", testCase.name, `${(buffer.length / 1024 / 1024).toFixed(2)} MB`, `${ms} ms`);
 }
 
 await browser.close();

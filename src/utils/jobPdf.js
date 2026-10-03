@@ -159,15 +159,11 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
   drawLabelValue("Cantidad", quantityValue, margin, contentWidth);
   y += 5 + 8;
 
-  // Primera página: 6 fotos (3x2) junto a datos del parte.
-  // Páginas siguientes: 9 fotos (3x3), solo fotos.
+  // Las fotos fluyen fila a fila: con texto corto caben 2 filas (6 fotos) en la primera
+  // página y 3 filas (9 fotos) en las siguientes; con texto largo caben menos.
   const PHOTO_CELL_W = 60; // 6 cm
   const PHOTO_CELL_H = 79; // 7.9 cm
   const PHOTO_COLS = 3;
-  const FIRST_PAGE_ROWS = 2;
-  const NEXT_PAGE_ROWS = 3;
-  const FIRST_PAGE_PHOTOS = PHOTO_COLS * FIRST_PAGE_ROWS; // 6
-  const NEXT_PAGE_PHOTOS = PHOTO_COLS * NEXT_PAGE_ROWS; // 9
   const photoInfoFontSize = 8;
   const photoInfoLineH = 3.2;
   const photoInfoMaxLines = 2;
@@ -191,10 +187,6 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
     allPhotos.push({ imageData: croppedImageData, imageType: "JPEG", infoLines });
   }
 
-  function gridHeight(rows) {
-    return rows * PHOTO_CELL_H + (rows - 1) * rowGap;
-  }
-
   function renderPhotoCell(photo, cellX, cellY) {
     doc.addImage(photo.imageData, photo.imageType, cellX, cellY, PHOTO_CELL_W, photoDrawH);
 
@@ -206,44 +198,19 @@ export async function generateJobPdf({ formData, photos, signature, output = "do
     }
   }
 
-  // Render primera página (máx. 6 fotos)
-  const firstBatch = allPhotos.slice(0, FIRST_PAGE_PHOTOS);
-  if (firstBatch.length > 0) {
-    let startY = y;
-    const firstGridH = gridHeight(FIRST_PAGE_ROWS);
-    if (startY + firstGridH > pageHeight - margin) {
+  let rowY = y;
+  for (let i = 0; i < allPhotos.length; i += PHOTO_COLS) {
+    if (rowY + PHOTO_CELL_H > pageHeight - margin) {
       doc.addPage();
-      startY = margin;
+      rowY = margin;
     }
 
-    firstBatch.forEach((photo, idx) => {
-      const row = Math.floor(idx / PHOTO_COLS);
-      const col = idx % PHOTO_COLS;
-      const cellX = margin + col * (PHOTO_CELL_W + colGap);
-      const cellY = startY + row * (PHOTO_CELL_H + rowGap);
-      renderPhotoCell(photo, cellX, cellY);
+    allPhotos.slice(i, i + PHOTO_COLS).forEach((photo, col) => {
+      renderPhotoCell(photo, margin + col * (PHOTO_CELL_W + colGap), rowY);
     });
-
-    y = startY + gridHeight(Math.ceil(firstBatch.length / PHOTO_COLS));
+    rowY += PHOTO_CELL_H + rowGap;
   }
-
-  // Render páginas siguientes (solo fotos, máx. 9 por página)
-  const remainingPhotos = allPhotos.slice(FIRST_PAGE_PHOTOS);
-  for (let i = 0; i < remainingPhotos.length; i += NEXT_PAGE_PHOTOS) {
-    doc.addPage();
-    const pagePhotos = remainingPhotos.slice(i, i + NEXT_PAGE_PHOTOS);
-    const startY = margin;
-
-    pagePhotos.forEach((photo, idx) => {
-      const row = Math.floor(idx / PHOTO_COLS);
-      const col = idx % PHOTO_COLS;
-      const cellX = margin + col * (PHOTO_CELL_W + colGap);
-      const cellY = startY + row * (PHOTO_CELL_H + rowGap);
-      renderPhotoCell(photo, cellX, cellY);
-    });
-
-    y = startY + gridHeight(Math.ceil(pagePhotos.length / PHOTO_COLS));
-  }
+  if (allPhotos.length > 0) y = rowY - rowGap;
 
   // Firma: se intenta encajar en la página actual reduciendo su tamaño antes de
   // saltar de página, para evitar dejarla sola cuando queda poco hueco (p. ej. tras

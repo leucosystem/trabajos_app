@@ -15,14 +15,24 @@
         [2400, 1000],
       ];
 
-      function makePhoto(index) {
-        const [w, h] = SIZES[index % SIZES.length];
+      function makePhoto(index, heavy) {
+        const [w, h] = heavy ? [4032, 3024] : SIZES[index % SIZES.length];
         const canvas = document.createElement("canvas");
         canvas.width = w;
         canvas.height = h;
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = `hsl(${(index * 47) % 360} 55% 60%)`;
         ctx.fillRect(0, 0, w, h);
+        if (heavy) {
+          const noise = ctx.getImageData(0, 0, w, h);
+          for (let i = 0; i < noise.data.length; i += 4) {
+            const n = (Math.random() * 60) | 0;
+            noise.data[i] = Math.min(255, noise.data[i] + n);
+            noise.data[i + 1] = Math.min(255, noise.data[i + 1] + n);
+            noise.data[i + 2] = Math.min(255, noise.data[i + 2] + n);
+          }
+          ctx.putImageData(noise, 0, 0);
+        }
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 12;
         ctx.strokeRect(6, 6, w - 12, h - 12);
@@ -63,15 +73,21 @@
         });
       }
 
-      window.makePdf = async (photoCount, signed) => {
+      const LONG_TEXT = Array.from({ length: 14 }, (_, i) =>
+        `Punto ${i + 1}: revisión completa de la instalación, sustitución de piezas y limpieza de la zona de trabajo con el cliente presente.`
+      ).join(" ");
+      const SPECIAL_TEXT = "Presupuesto 1.250,50 € — “comillas”, ‘simples’, ñ, á, é, ç, ü, ½, º, · y • viñetas.";
+
+      window.makePdf = async (photoCount, signed, opts = {}) => {
+        const started = performance.now();
         const photos = [];
-        for (let i = 0; i < photoCount; i += 1) photos.push(await makePhoto(i));
+        for (let i = 0; i < photoCount; i += 1) photos.push(await makePhoto(i, opts.heavy));
         const result = await generateJobPdf({
           formData: {
-            cliente: "Cliente de prueba",
+            cliente: opts.special ? "Construcciones Núñez & Hijos, S.L." : "Cliente de prueba",
             operario: "Operario Prueba",
             fecha: "2026-10-03",
-            descripcion: "Trabajo de prueba para revisar la maquetación del PDF.",
+            descripcion: opts.longText ? LONG_TEXT : opts.special ? SPECIAL_TEXT : "Trabajo de prueba para revisar la maquetación del PDF.",
             cantidad: "12.5",
             unidad: "horas",
           },
@@ -79,7 +95,7 @@
           signature: signed ? makeSignature() : null,
           output: "blob",
         });
-        return blobToBase64(result.blob);
+        return { base64: await blobToBase64(result.blob), ms: Math.round(performance.now() - started) };
       };
       window.harnessReady = true;
     </script>
